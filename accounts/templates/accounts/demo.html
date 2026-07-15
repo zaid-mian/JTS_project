@@ -92,6 +92,7 @@
             gap: 30px;
             opacity: 0;
             animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+            margin-bottom: 40px;
         }
 
         @media (max-width: 768px) {
@@ -278,6 +279,86 @@
             border-radius: 0 6px 6px 0;
         }
 
+        /* QA Testing Dashboard Section */
+        .qa-card {
+            border-left: 4px solid var(--primary);
+            background: rgba(30, 41, 59, 0.4);
+            margin-top: 30px;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .qa-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .qa-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .qa-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .qa-field span:first-child {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .qa-field span:last-child {
+            font-size: 16px;
+            font-weight: 500;
+            color: #ffffff;
+        }
+
+        .qa-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .qa-badge.success {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .qa-badge.error {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .qa-badge.neutral {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            border: 1px solid var(--glass-border);
+        }
+
+        .raw-box {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            color: #a5b4fc;
+            max-height: 250px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
         /* Back to Catalog button */
         .btn-nav {
             background: rgba(255, 255, 255, 0.05);
@@ -438,11 +519,57 @@
                 </div>
             </div>
         </div>
+
+        <!-- QA Testing Dashboard Panel -->
+        <div class="card qa-card">
+            <h2>Last API Response</h2>
+            <div class="qa-grid">
+                <div class="qa-field">
+                    <span>Tested Endpoint</span>
+                    <span id="qa-endpoint">-</span>
+                </div>
+                <div class="qa-field">
+                    <span>Status</span>
+                    <span><span id="qa-status" class="qa-badge neutral">-</span></span>
+                </div>
+                <div class="qa-field">
+                    <span>Response Time</span>
+                    <span id="qa-time">-</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>API Message</label>
+                <div id="qa-message" style="font-size: 15px; font-weight: 500; margin-bottom: 10px; color: #ffffff;">-</div>
+            </div>
+            <div class="form-group">
+                <label>Raw Payload Response</label>
+                <div class="raw-box" id="qa-raw">Waiting for API request...</div>
+            </div>
+        </div>
     </div>
 
     <script>
         // Inject CSRF Token from Django context
         const csrfToken = "{{ csrf_token }}";
+
+        // Helper to update the QA Dashboard metrics
+        function updateQADashboard(endpoint, statusText, statusCode, duration, message, rawBody) {
+            document.getElementById('qa-endpoint').innerText = endpoint;
+            
+            const statusEl = document.getElementById('qa-status');
+            statusEl.innerText = `${statusCode} ${statusText}`;
+            if (statusCode >= 200 && statusCode < 300) {
+                statusEl.className = 'qa-badge success';
+            } else {
+                statusEl.className = 'qa-badge error';
+            }
+
+            document.getElementById('qa-time').innerText = `${duration} ms`;
+            document.getElementById('qa-message').innerText = message || '-';
+            
+            const rawBox = document.getElementById('qa-raw');
+            rawBox.innerText = typeof rawBody === 'object' ? JSON.stringify(rawBody, null, 2) : rawBody;
+        }
 
         // Helper to handle status message display
         function displayMessage(elementId, text, isSuccess) {
@@ -472,8 +599,80 @@
             }
         }
 
+        // Generic API fetch wrapper to enforce content-type parsing checks, timer captures, and audit updates
+        async function fetchAPI(endpoint, method, body = null) {
+            const startTime = performance.now();
+            const options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                }
+            };
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+
+            let response;
+            let duration;
+            let parsedBody = null;
+            let isJson = false;
+
+            try {
+                response = await fetch(endpoint, options);
+                duration = Math.round(performance.now() - startTime);
+                
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    parsedBody = await response.json();
+                    isJson = true;
+                } else {
+                    parsedBody = await response.text();
+                }
+            } catch (networkError) {
+                duration = Math.round(performance.now() - startTime);
+                updateQADashboard(
+                    `${method} ${endpoint}`,
+                    'Network Error',
+                    0,
+                    duration,
+                    networkError.message,
+                    networkError.stack || networkError.message
+                );
+                throw networkError;
+            }
+
+            // Extract message for display
+            let displayMsg = '';
+            if (isJson) {
+                displayMsg = parsedBody.message || parsedBody.error || (parsedBody.errors ? parsedBody.errors.join(' ') : '');
+            } else {
+                displayMsg = `HTML template returned (Status: ${response.status}).`;
+            }
+
+            updateQADashboard(
+                `${method} ${endpoint}`,
+                response.statusText || (response.ok ? 'OK' : 'Error'),
+                response.status,
+                duration,
+                displayMsg || (response.ok ? 'Transaction successful' : 'Transaction failed'),
+                parsedBody
+            );
+
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    statusText: response.statusText,
+                    message: displayMsg || `API error code: ${response.status}`,
+                    body: parsedBody
+                };
+            }
+
+            return parsedBody;
+        }
+
         // Handle Login
-        function handleLogin() {
+        async function handleLogin() {
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
             const msgId = 'msg-login';
@@ -488,73 +687,44 @@
             document.getElementById(panelId).style.display = 'none';
             setButtonLoading('btn-login', true);
 
-            fetch('/api/auth/login/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                },
-                body: JSON.stringify({ email, password })
-            })
-            .then(async response => {
-                const data = await response.json();
-                if (!response.ok) {
-                    throw new Error(data.error || 'Login failed. Please verify credentials.');
-                }
-                return data;
-            })
-            .then(user => {
+            try {
+                const data = await fetchAPI('/api/auth/login/', 'POST', { email, password });
                 setButtonLoading('btn-login', false);
                 displayMessage(msgId, 'Login Successful!', true);
                 
-                // Populate profile detail panel
+                // Read from data.user.* as returned by API
+                const user = data.user;
                 document.getElementById('user-id').innerText = user.id;
                 document.getElementById('user-email').innerText = user.email;
                 document.getElementById('user-first').innerText = user.first_name || 'N/A';
                 document.getElementById('user-last').innerText = user.last_name || 'N/A';
                 
                 document.getElementById(panelId).style.display = 'block';
-            })
-            .catch(error => {
+            } catch (error) {
                 setButtonLoading('btn-login', false);
-                displayMessage(msgId, error.message, false);
-            });
+                displayMessage(msgId, error.message || 'Login failed. Please verify credentials.', false);
+            }
         }
 
         // Handle Logout
-        function handleLogout() {
+        async function handleLogout() {
             const msgId = 'msg-logout';
             clearMessage(msgId);
             setButtonLoading('btn-logout', true);
 
-            fetch('/api/auth/logout/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                }
-            })
-            .then(async response => {
-                const data = await response.json();
-                if (!response.ok) {
-                    throw new Error(data.error || 'Logout failed.');
-                }
-                return data;
-            })
-            .then(data => {
+            try {
+                const data = await fetchAPI('/api/auth/logout/', 'POST');
                 setButtonLoading('btn-logout', false);
                 displayMessage(msgId, data.message || 'Logout successful!', true);
-                // Clear user panel if open
                 document.getElementById('panel-user').style.display = 'none';
-            })
-            .catch(error => {
+            } catch (error) {
                 setButtonLoading('btn-logout', false);
-                displayMessage(msgId, error.message, false);
-            });
+                displayMessage(msgId, error.message || 'Logout failed.', false);
+            }
         }
 
         // Handle Forgot Password
-        function handleForgotPassword() {
+        async function handleForgotPassword() {
             const email = document.getElementById('forgot-email').value;
             const msgId = 'msg-forgot';
 
@@ -566,33 +736,19 @@
             clearMessage(msgId);
             setButtonLoading('btn-forgot', true);
 
-            fetch('/api/auth/forgot-password/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                },
-                body: JSON.stringify({ email })
-            })
-            .then(async response => {
-                const data = await response.json();
-                if (!response.ok) {
-                    throw new Error(data.error || 'Failed to submit request.');
-                }
-                return data;
-            })
-            .then(data => {
+            try {
+                const data = await fetchAPI('/api/auth/forgot-password/', 'POST', { email });
                 setButtonLoading('btn-forgot', false);
-                displayMessage(msgId, data.message, true);
-            })
-            .catch(error => {
+                // Clear message with Console email notice
+                displayMessage(msgId, `${data.message} Link printed in Django console.`, true);
+            } catch (error) {
                 setButtonLoading('btn-forgot', false);
-                displayMessage(msgId, error.message, false);
-            });
+                displayMessage(msgId, error.message || 'Failed to submit request.', false);
+            }
         }
 
         // Handle Change Password
-        function handleChangePassword() {
+        async function handleChangePassword() {
             const current_password = document.getElementById('change-current').value;
             const new_password = document.getElementById('change-new').value;
             const confirm_new_password = document.getElementById('change-confirm').value;
@@ -606,37 +762,23 @@
             clearMessage(msgId);
             setButtonLoading('btn-change', true);
 
-            fetch('/api/auth/change-password/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                },
-                body: JSON.stringify({ current_password, new_password, confirm_new_password })
-            })
-            .then(async response => {
-                const data = await response.json();
-                if (!response.ok) {
-                    // Check standard validation errors array from validate_password
-                    if (data.errors) {
-                        throw new Error(data.errors.join(' '));
-                    }
-                    throw new Error(data.error || 'Failed to change password.');
-                }
-                return data;
-            })
-            .then(data => {
+            try {
+                const data = await fetchAPI('/api/auth/change-password/', 'POST', {
+                    current_password,
+                    new_password,
+                    confirm_new_password
+                });
                 setButtonLoading('btn-change', false);
                 displayMessage(msgId, data.message || 'Password changed successfully!', true);
-                // Clear password fields
+                
+                // Clear fields
                 document.getElementById('change-current').value = '';
                 document.getElementById('change-new').value = '';
                 document.getElementById('change-confirm').value = '';
-            })
-            .catch(error => {
+            } catch (error) {
                 setButtonLoading('btn-change', false);
-                displayMessage(msgId, error.message, false);
-            });
+                displayMessage(msgId, error.message || 'Failed to change password.', false);
+            }
         }
     </script>
 </body>
