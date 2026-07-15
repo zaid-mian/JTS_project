@@ -124,7 +124,8 @@ STATIC_URL = 'static/'
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
 # Email Configuration for Local Development
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'accounts.email_backend.DevelopmentEmailBackend'
 DEFAULT_FROM_EMAIL = 'no-reply@memsplatform.local'
+
 
 
