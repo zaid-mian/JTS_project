@@ -1,1 +1,2 @@
-from .product import CatalogProductAPIListView, CatalogProductAPIDetailView
+from .product import CatalogProductAPIListView, CatalogProductAPIDetailView, CatalogDemoView
+

@@ -89,3 +89,13 @@ class CatalogProductAPIDetailView(View):
             "pricing_plans": plans_data
         }
         return JsonResponse(response_data)
+
+
+from django.views.generic import TemplateView
+
+class CatalogDemoView(TemplateView):
+    """
+    Serves the HTML/CSS/JS frontend demo page.
+    """
+    template_name = 'catalog/demo.html'
+

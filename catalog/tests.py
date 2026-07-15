@@ -200,3 +200,10 @@ class CatalogProductAPITestCase(TestCase):
         url_none = reverse('catalog:api_product_detail', kwargs={'slug': 'does-not-exist'})
         response = self.client.get(url_none)
         self.assertEqual(response.status_code, 404)
+
+    def test_catalog_demo_page_load(self):
+        url = reverse('catalog:demo')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "MEMS Platform Packaging Matrix")
+
