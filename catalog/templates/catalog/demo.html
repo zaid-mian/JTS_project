@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEMS SaaS Catalog | Demo Dashboard</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #020617 100%);
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.07);
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #10b981;
+            --danger: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            color: var(--text-main);
+            padding: 40px 20px;
+            overflow-y: auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header styling */
+        header {
+            margin-bottom: 50px;
+            text-align: center;
+            animation: fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 12px;
+            background: linear-gradient(to right, #ffffff, #c7d2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Glassmorphic card styling */
+        .card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Landing grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 30px;
+            opacity: 0;
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+        }
+
+        .product-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 15px 40px rgba(99, 102, 241, 0.15);
+        }
+
+        .product-header h2 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+
+        .product-description {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            flex-grow: 1;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            margin-bottom: 30px;
+            box-shadow: none;
+        }
+
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: none;
+        }
+
+        /* Detail section styling */
+        .detail-view {
+            display: none;
+            opacity: 0;
+            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .detail-header {
+            margin-bottom: 40px;
+        }
+
+        .detail-header h2 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #ffffff;
+        }
+
+        .detail-header p {
+            color: var(--text-muted);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--glass-border);
+            color: #c7d2fe;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Modules grid */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .module-card {
+            background: rgba(255, 255, 255, 0.015);
+        }
+
+        .module-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+
+        .module-card .code {
+            display: inline-block;
+            background: rgba(99, 102, 241, 0.1);
+            color: #a5b4fc;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .module-card p {
+            color: var(--text-muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        /* Pricing grid */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+        }
+
+        .plan-card {
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--glass-border);
+        }
+
+        .plan-card.premium {
+            border-color: var(--primary);
+            background: linear-gradient(180deg, rgba(99, 102, 241, 0.05) 0%, rgba(255, 255, 255, 0.015) 100%);
+            position: relative;
+        }
+
+        .plan-card.premium::before {
+            content: 'POPULAR';
+            position: absolute;
+            top: -12px;
+            right: 25px;
+            background: var(--primary);
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            letter-spacing: 1px;
+        }
+
+        .plan-name {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .plan-price-container {
+            margin-bottom: 25px;
+        }
+
+        .plan-price {
+            font-size: 38px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .plan-cycle {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-left: 4px;
+        }
+
+        .plan-modules-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .plan-modules-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .plan-module-item {
+            display: flex;
+            align-items: flex-start;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .plan-module-item.disabled {
+            color: var(--text-muted);
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        .icon-check {
+            color: var(--accent);
+            margin-right: 10px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .icon-cross {
+            color: var(--danger);
+            margin-right: 10px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .limit-pill {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            font-size: 11px;
+            padding: 1px 6px;
+            border-radius: 4px;
+            margin-left: 6px;
+            font-weight: 500;
+        }
+
+        /* Loading Spinner */
+        .loading-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 0;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+
+        /* Error state */
+        .error-container {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .error-container h3 {
+            font-size: 20px;
+            color: var(--danger);
+            margin-bottom: 12px;
+        }
+
+        .error-container p {
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 10px;
+            }
+            header h1 {
+                font-size: 28px;
+            }
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>MEMS Platform Packaging Matrix</h1>
+            <p>Interactive review panel consuming Catalog endpoints to demonstrate modular structures and features configurations.</p>
+        </header>
+
+        <!-- Loading spinner -->
+        <div class="loading-container" id="loading">
+            <div class="spinner"></div>
+            <p id="loading-text">Fetching data from Catalog API...</p>
+        </div>
+
+        <!-- Error Card -->
+        <div class="card error-container" id="error-card">
+            <h3>API Connection Failed</h3>
+            <p id="error-message">Unable to fetch products. Please ensure the server is running.</p>
+            <button class="btn" onclick="retryLastAction()">Retry Request</button>
+        </div>
+
+        <!-- Landing Section (Product List) -->
+        <div class="grid" id="product-list-view">
+            <!-- Product cards will be injected dynamically -->
+        </div>
+
+        <!-- Detail Section (Product Detail) -->
+        <div class="detail-view" id="product-detail-view">
+            <button class="btn btn-back" onclick="showListView()">← Back to Products</button>
+            
+            <div class="detail-header">
+                <h2 id="detail-product-name">Product Name</h2>
+                <p id="detail-product-description">Product Description goes here...</p>
+            </div>
+
+            <div class="section-title">Operational Modules</div>
+            <div class="modules-grid" id="modules-list">
+                <!-- Modules will be injected dynamically -->
+            </div>
+
+            <div class="section-title">Pricing Matrix</div>
+            <div class="pricing-grid" id="plans-list">
+                <!-- Plans will be injected dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_LIST_URL = '/api/products/';
+        const API_DETAIL_PREFIX = '/api/products/';
+        
+        let lastAction = null; // Stash function context for retries
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchProducts();
+        });
+
+        function showLoading(text = 'Fetching data...') {
+            document.getElementById('loading-text').innerText = text;
+            document.getElementById('loading').style.display = 'flex';
+            document.getElementById('product-list-view').style.display = 'none';
+            document.getElementById('product-detail-view').style.display = 'none';
+            document.getElementById('error-card').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function showError(message) {
+            hideLoading();
+            document.getElementById('error-message').innerText = message;
+            document.getElementById('error-card').style.display = 'block';
+            document.getElementById('product-list-view').style.display = 'none';
+            document.getElementById('product-detail-view').style.display = 'none';
+        }
+
+        function retryLastAction() {
+            if (lastAction) {
+                lastAction();
+            } else {
+                fetchProducts();
+            }
+        }
+
+        // Fetch products list
+        function fetchProducts() {
+            lastAction = fetchProducts;
+            showLoading('Loading active products catalog...');
+
+            fetch(API_LIST_URL)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(products => {
+                    hideLoading();
+                    const container = document.getElementById('product-list-view');
+                    container.innerHTML = '';
+                    
+                    if (products.length === 0) {
+                        container.innerHTML = '<p style="text-align: center; color: var(--text-muted); grid-column: 1/-1;">No active products found in the database.</p>';
+                    } else {
+                        products.forEach(product => {
+                            const card = document.createElement('div');
+                            card.className = 'card product-card';
+                            card.innerHTML = `
+                                <div class="product-header">
+                                    <h2>${escapeHtml(product.name)}</h2>
+                                </div>
+                                <p class="product-description">${escapeHtml(product.description || 'No description available.')}</p>
+                                <button class="btn" onclick="fetchProductDetail('${product.slug}')">View Details &rarr;</button>
+                            `;
+                            container.appendChild(card);
+                        });
+                    }
+                    
+                    container.style.display = 'grid';
+                    document.getElementById('product-list-view').style.opacity = '1';
+                })
+                .catch(error => {
+                    console.error('Error fetching products:', error);
+                    showError(`Failed to load products: ${error.message}. Verify that the Django server is running.`);
+                });
+        }
+
+        // Fetch single product details
+        function fetchProductDetail(slug) {
+            lastAction = () => fetchProductDetail(slug);
+            showLoading(`Loading product specifications for '${slug}'...`);
+
+            fetch(`${API_DETAIL_PREFIX}${slug}/`)
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            throw new Error('Product not found (404).');
+                        }
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(product => {
+                    hideLoading();
+                    
+                    // Populate headers
+                    document.getElementById('detail-product-name').innerText = product.name;
+                    document.getElementById('detail-product-description').innerText = product.description || 'No description available.';
+
+                    // Populate Modules
+                    const modulesContainer = document.getElementById('modules-list');
+                    modulesContainer.innerHTML = '';
+                    if (product.modules.length === 0) {
+                        modulesContainer.innerHTML = '<p style="color: var(--text-muted);">No operational modules defined for this product.</p>';
+                    } else {
+                        product.modules.forEach(mod => {
+                            const modCard = document.createElement('div');
+                            modCard.className = 'card module-card';
+                            modCard.innerHTML = `
+                                <h3>${escapeHtml(mod.name)}</h3>
+                                <span class="code">${escapeHtml(mod.code)}</span>
+                                <p>${escapeHtml(mod.description || 'No description provided.')}</p>
+                            `;
+                            modulesContainer.appendChild(modCard);
+                        });
+                    }
+
+                    // Populate Pricing Plans
+                    const plansContainer = document.getElementById('plans-list');
+                    plansContainer.innerHTML = '';
+                    if (product.pricing_plans.length === 0) {
+                        plansContainer.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">No pricing plans configured for this product.</p>';
+                    } else {
+                        product.pricing_plans.forEach((plan, index) => {
+                            const planCard = document.createElement('div');
+                            // Highlight professional or second plan as popular for UI aesthetics
+                            const isPremium = plan.name.toLowerCase().includes('pro') || index === 1;
+                            planCard.className = `card plan-card ${isPremium ? 'premium' : ''}`;
+                            
+                            // Formats billing cycle label
+                            let cycleText = '/mo';
+                            if (plan.billing_cycle === 'yearly') cycleText = '/yr';
+                            else if (plan.billing_cycle === 'one_time') cycleText = ' once';
+
+                            // List modules in plan
+                            let modulesListHtml = '';
+                            if (plan.modules && plan.modules.length > 0) {
+                                plan.modules.forEach(m => {
+                                    const enabledClass = m.is_enabled ? '' : 'disabled';
+                                    const iconHtml = m.is_enabled 
+                                        ? '<span class="icon-check">&#10003;</span>' 
+                                        : '<span class="icon-cross">&#10007;</span>';
+                                    const limitHtml = m.limit_value 
+                                        ? `<span class="limit-pill">${escapeHtml(m.limit_value)}</span>` 
+                                        : '';
+                                    
+                                    modulesListHtml += `
+                                        <li class="plan-module-item ${enabledClass}">
+                                            ${iconHtml}
+                                            <span>${escapeHtml(m.name)}</span>
+                                            ${limitHtml}
+                                        </li>
+                                    `;
+                                });
+                            } else {
+                                modulesListHtml = '<li style="color: var(--text-muted); font-size: 13px;">No module rules defined.</li>';
+                            }
+
+                            planCard.innerHTML = `
+                                <div>
+                                    <h3 class="plan-name">${escapeHtml(plan.name)}</h3>
+                                    <div class="plan-price-container">
+                                        <span class="plan-price">$${escapeHtml(plan.price)}</span>
+                                        <span class="plan-cycle">${cycleText}</span>
+                                    </div>
+                                    <div class="plan-modules-title">Features Checklist</div>
+                                    <ul class="plan-modules-list">
+                                        ${modulesListHtml}
+                                    </ul>
+                                </div>
+                            `;
+                            plansContainer.appendChild(planCard);
+                        });
+                    }
+
+                    // Display details screen
+                    document.getElementById('product-detail-view').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error fetching product details:', error);
+                    showError(`Failed to load product details: ${error.message}`);
+                });
+        }
+
+        function showListView() {
+            document.getElementById('product-detail-view').style.display = 'none';
+            document.getElementById('product-list-view').style.display = 'grid';
+            lastAction = fetchProducts;
+        }
+
+        // Escape helper to prevent HTML injection
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
+</body>
+</html>
