@@ -259,6 +259,13 @@ class AccountsAuthTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "didn’t match")
 
+    def test_accounts_demo_page_load(self):
+        url = reverse('accounts:demo')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Authentication Demo")
+
+
 
 
 

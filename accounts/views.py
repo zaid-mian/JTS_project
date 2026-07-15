@@ -189,3 +189,13 @@ class PasswordResetCompleteView(DjangoPasswordResetCompleteView):
     template_name = 'accounts/password_reset_complete.html'
 
 
+from django.views.generic import TemplateView
+
+class AccountsDemoView(TemplateView):
+    """
+    Serves the HTML/CSS/JS authentication demo page.
+    """
+    template_name = 'accounts/demo.html'
+
+
+

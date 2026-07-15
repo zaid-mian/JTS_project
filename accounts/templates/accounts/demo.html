@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Demo | MEMS Platform</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #020617 100%);
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.07);
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            color: var(--text-main);
+            padding: 40px 20px;
+            overflow-y: auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header styling */
+        header {
+            margin-bottom: 30px;
+            text-align: center;
+            animation: fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 12px;
+            background: linear-gradient(to right, #ffffff, #c7d2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Notice banner */
+        .notice-banner {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: 12px;
+            padding: 16px 20px;
+            color: #fde68a;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: fadeIn 0.8s ease forwards;
+        }
+
+        .notice-banner svg {
+            flex-shrink: 0;
+        }
+
+        /* Grid layout */
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+            gap: 30px;
+            opacity: 0;
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+        }
+
+        @media (max-width: 768px) {
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Glassmorphic card */
+        .card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #c7d2fe;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 10px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Form Controls */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .form-group input {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: var(--text-main);
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        /* Buttons */
+        .btn {
+            background: var(--primary);
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+            display: inline-block;
+            width: 100%;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+        }
+
+        .btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #dc2626;
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.35);
+        }
+
+        /* Logged-In User Details Panel */
+        .success-panel {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        .success-panel h3 {
+            color: var(--accent);
+            font-size: 16px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-details {
+            list-style: none;
+            font-size: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .user-details li {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 6px;
+        }
+
+        .user-details li span:first-child {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Message display styling */
+        .status-msg {
+            font-size: 13px;
+            font-weight: 500;
+            line-height: 1.5;
+            margin-top: 15px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            display: none;
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        .status-msg.success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            color: #a7f3d0;
+            display: block;
+        }
+
+        .status-msg.error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            display: block;
+        }
+
+        .info-note {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-top: 12px;
+            background: rgba(255, 255, 255, 0.015);
+            border-left: 2px solid var(--primary);
+            padding: 8px 12px;
+            border-radius: 0 6px 6px 0;
+        }
+
+        /* Back to Catalog button */
+        .btn-nav {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-nav:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="/demo/" class="btn-nav">← Back to Catalog</a>
+            <h1>Authentication Demo Portal</h1>
+            <p>Verification dashboard to manually test and review our backend session authentication workflows.</p>
+        </header>
+
+        <!-- Notice bar -->
+        <div class="notice-banner">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="16" x2="12" y2="12"/>
+                <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            <div>
+                <strong>Scope Notice:</strong> Registration and payment workflow will be integrated later by the Registration team. This page demonstrates only the Authentication module.
+            </div>
+        </div>
+
+        <div class="demo-grid">
+            <!-- 1. Login Card -->
+            <div class="card">
+                <div>
+                    <h2>Section 1 — Login</h2>
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" placeholder="user@gmail.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" placeholder="••••••••" required>
+                    </div>
+                </div>
+                <div>
+                    <button class="btn" id="btn-login" onclick="handleLogin()">Login</button>
+                    <div class="status-msg" id="msg-login"></div>
+                    
+                    <div class="success-panel" id="panel-user" style="display: none;">
+                        <h3>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            Login Successful
+                        </h3>
+                        <ul class="user-details">
+                            <li><span>User ID</span><span id="user-id">-</span></li>
+                            <li><span>Email</span><span id="user-email">-</span></li>
+                            <li><span>First Name</span><span id="user-first">-</span></li>
+                            <li><span>Last Name</span><span id="user-last">-</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Logout Card -->
+            <div class="card">
+                <div>
+                    <h2>Section 2 — Logout</h2>
+                    <p style="color: var(--text-muted); font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
+                        Sends a POST request to terminate the active user session cookie (`sessionid`) on the Django backend.
+                    </p>
+                </div>
+                <div>
+                    <button class="btn btn-danger" id="btn-logout" onclick="handleLogout()">Logout</button>
+                    <div class="status-msg" id="msg-logout"></div>
+                </div>
+            </div>
+
+            <!-- 3. Forgot Password Card -->
+            <div class="card">
+                <div>
+                    <h2>Section 3 — Forgot Password</h2>
+                    <div class="form-group">
+                        <label for="forgot-email">Email</label>
+                        <input type="email" id="forgot-email" placeholder="user@gmail.com" required>
+                    </div>
+                </div>
+                <div>
+                    <button class="btn" id="btn-forgot" onclick="handleForgotPassword()">Send Reset Link</button>
+                    <div class="status-msg" id="msg-forgot"></div>
+                    <div class="info-note">
+                        <strong>Note:</strong> In development, the reset email is printed in the Django console using the custom development email backend.
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Change Password Card -->
+            <div class="card">
+                <div>
+                    <h2>Section 4 — Change Password</h2>
+                    <div class="form-group">
+                        <label for="change-current">Current Password</label>
+                        <input type="password" id="change-current" placeholder="••••••••" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="change-new">New Password</label>
+                        <input type="password" id="change-new" placeholder="••••••••" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="change-confirm">Confirm Password</label>
+                        <input type="password" id="change-confirm" placeholder="••••••••" required>
+                    </div>
+                </div>
+                <div>
+                    <button class="btn" id="btn-change" onclick="handleChangePassword()">Change Password</button>
+                    <div class="status-msg" id="msg-change"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Inject CSRF Token from Django context
+        const csrfToken = "{{ csrf_token }}";
+
+        // Helper to handle status message display
+        function displayMessage(elementId, text, isSuccess) {
+            const el = document.getElementById(elementId);
+            el.innerText = text;
+            el.className = `status-msg ${isSuccess ? 'success' : 'error'}`;
+        }
+
+        function clearMessage(elementId) {
+            const el = document.getElementById(elementId);
+            el.innerText = '';
+            el.className = 'status-msg';
+        }
+
+        // Actions Loader Toggles
+        function setButtonLoading(buttonId, isLoading) {
+            const btn = document.getElementById(buttonId);
+            if (isLoading) {
+                btn.disabled = true;
+                btn.dataset.originalText = btn.innerText;
+                btn.innerText = 'Processing...';
+            } else {
+                btn.disabled = false;
+                if (btn.dataset.originalText) {
+                    btn.innerText = btn.dataset.originalText;
+                }
+            }
+        }
+
+        // Handle Login
+        function handleLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const msgId = 'msg-login';
+            const panelId = 'panel-user';
+
+            if (!email || !password) {
+                displayMessage(msgId, 'Please fill in all fields.', false);
+                return;
+            }
+
+            clearMessage(msgId);
+            document.getElementById(panelId).style.display = 'none';
+            setButtonLoading('btn-login', true);
+
+            fetch('/api/auth/login/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ email, password })
+            })
+            .then(async response => {
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Login failed. Please verify credentials.');
+                }
+                return data;
+            })
+            .then(user => {
+                setButtonLoading('btn-login', false);
+                displayMessage(msgId, 'Login Successful!', true);
+                
+                // Populate profile detail panel
+                document.getElementById('user-id').innerText = user.id;
+                document.getElementById('user-email').innerText = user.email;
+                document.getElementById('user-first').innerText = user.first_name || 'N/A';
+                document.getElementById('user-last').innerText = user.last_name || 'N/A';
+                
+                document.getElementById(panelId).style.display = 'block';
+            })
+            .catch(error => {
+                setButtonLoading('btn-login', false);
+                displayMessage(msgId, error.message, false);
+            });
+        }
+
+        // Handle Logout
+        function handleLogout() {
+            const msgId = 'msg-logout';
+            clearMessage(msgId);
+            setButtonLoading('btn-logout', true);
+
+            fetch('/api/auth/logout/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                }
+            })
+            .then(async response => {
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Logout failed.');
+                }
+                return data;
+            })
+            .then(data => {
+                setButtonLoading('btn-logout', false);
+                displayMessage(msgId, data.message || 'Logout successful!', true);
+                // Clear user panel if open
+                document.getElementById('panel-user').style.display = 'none';
+            })
+            .catch(error => {
+                setButtonLoading('btn-logout', false);
+                displayMessage(msgId, error.message, false);
+            });
+        }
+
+        // Handle Forgot Password
+        function handleForgotPassword() {
+            const email = document.getElementById('forgot-email').value;
+            const msgId = 'msg-forgot';
+
+            if (!email) {
+                displayMessage(msgId, 'Email address is required.', false);
+                return;
+            }
+
+            clearMessage(msgId);
+            setButtonLoading('btn-forgot', true);
+
+            fetch('/api/auth/forgot-password/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ email })
+            })
+            .then(async response => {
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to submit request.');
+                }
+                return data;
+            })
+            .then(data => {
+                setButtonLoading('btn-forgot', false);
+                displayMessage(msgId, data.message, true);
+            })
+            .catch(error => {
+                setButtonLoading('btn-forgot', false);
+                displayMessage(msgId, error.message, false);
+            });
+        }
+
+        // Handle Change Password
+        function handleChangePassword() {
+            const current_password = document.getElementById('change-current').value;
+            const new_password = document.getElementById('change-new').value;
+            const confirm_new_password = document.getElementById('change-confirm').value;
+            const msgId = 'msg-change';
+
+            if (!current_password || !new_password || !confirm_new_password) {
+                displayMessage(msgId, 'All fields are required.', false);
+                return;
+            }
+
+            clearMessage(msgId);
+            setButtonLoading('btn-change', true);
+
+            fetch('/api/auth/change-password/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ current_password, new_password, confirm_new_password })
+            })
+            .then(async response => {
+                const data = await response.json();
+                if (!response.ok) {
+                    // Check standard validation errors array from validate_password
+                    if (data.errors) {
+                        throw new Error(data.errors.join(' '));
+                    }
+                    throw new Error(data.error || 'Failed to change password.');
+                }
+                return data;
+            })
+            .then(data => {
+                setButtonLoading('btn-change', false);
+                displayMessage(msgId, data.message || 'Password changed successfully!', true);
+                // Clear password fields
+                document.getElementById('change-current').value = '';
+                document.getElementById('change-new').value = '';
+                document.getElementById('change-confirm').value = '';
+            })
+            .catch(error => {
+                setButtonLoading('btn-change', false);
+                displayMessage(msgId, error.message, false);
+            });
+        }
+    </script>
+</body>
+</html>

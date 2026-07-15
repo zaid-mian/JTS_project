@@ -625,18 +625,22 @@
                             }
 
                             planCard.innerHTML = `
-                                <div>
-                                    <h3 class="plan-name">${escapeHtml(plan.name)}</h3>
-                                    <div class="plan-price-container">
-                                        <span class="plan-price">$${escapeHtml(plan.price)}</span>
-                                        <span class="plan-cycle">${cycleText}</span>
+                                <div style="display: flex; flex-direction: column; height: 100%; justify-content: space-between;">
+                                    <div>
+                                        <h3 class="plan-name">${escapeHtml(plan.name)}</h3>
+                                        <div class="plan-price-container">
+                                            <span class="plan-price">$${escapeHtml(plan.price)}</span>
+                                            <span class="plan-cycle">${cycleText}</span>
+                                        </div>
+                                        <div class="plan-modules-title">Features Checklist</div>
+                                        <ul class="plan-modules-list" style="margin-bottom: 25px;">
+                                            ${modulesListHtml}
+                                        </ul>
                                     </div>
-                                    <div class="plan-modules-title">Features Checklist</div>
-                                    <ul class="plan-modules-list">
-                                        ${modulesListHtml}
-                                    </ul>
+                                    <button class="btn" style="width: 100%; margin-top: auto;" onclick="window.location='/auth-demo/'">Choose Plan</button>
                                 </div>
                             `;
+
                             plansContainer.appendChild(planCard);
                         });
                     }
