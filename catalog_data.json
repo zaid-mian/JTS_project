@@ -1,0 +1,121 @@
+[
+    {
+        "model": "catalog.product",
+        "pk": 1,
+        "fields": {
+            "name": "Sales CRM",
+            "slug": "sales-crm",
+            "description": "ales CRM is a comprehensive customer relationship management solution designed to streamline sales operations, manage customer interactions, track leads, monitor opportunities, generate reports, and improve overall sales performance through an organized and efficient workflow.",
+            "is_active": true,
+            "created_at": "2026-07-14T14:53:07.028Z",
+            "updated_at": "2026-07-14T14:53:07.028Z",
+            "display_order": 0
+        }
+    },
+    {
+        "model": "catalog.module",
+        "pk": 1,
+        "fields": {
+            "product": 1,
+            "name": "Lead Management",
+            "code": "lead_management",
+            "description": "Manage customer leads by capturing, organizing, tracking, and following up on potential customers throughout the sales process.",
+            "created_at": "2026-07-14T14:54:44.909Z",
+            "is_active": true,
+            "display_order": 0,
+            "updated_at": "2026-07-14T14:54:44.909Z"
+        }
+    },
+    {
+        "model": "catalog.module",
+        "pk": 2,
+        "fields": {
+            "product": 1,
+            "name": "Reports",
+            "code": "reports",
+            "description": "Generate detailed sales reports and performance insights to help monitor business growth, track key metrics, and support informed decision-making.",
+            "created_at": "2026-07-14T14:55:25.828Z",
+            "is_active": true,
+            "display_order": 0,
+            "updated_at": "2026-07-14T14:55:25.828Z"
+        }
+    },
+    {
+        "model": "catalog.pricingplan",
+        "pk": 1,
+        "fields": {
+            "product": 1,
+            "name": "Starter",
+            "price": "19.00",
+            "currency": "USD",
+            "billing_cycle": "monthly",
+            "is_active": true,
+            "created_at": "2026-07-14T14:56:26.770Z",
+            "updated_at": "2026-07-14T15:01:01.830Z",
+            "display_order": 0
+        }
+    },
+    {
+        "model": "catalog.pricingplan",
+        "pk": 2,
+        "fields": {
+            "product": 1,
+            "name": "Professional",
+            "price": "49.00",
+            "currency": "USD",
+            "billing_cycle": "monthly",
+            "is_active": true,
+            "created_at": "2026-07-14T14:56:58.745Z",
+            "updated_at": "2026-07-14T15:02:07.568Z",
+            "display_order": 0
+        }
+    },
+    {
+        "model": "catalog.planmodule",
+        "pk": 1,
+        "fields": {
+            "plan": 1,
+            "is_enabled": true,
+            "limit_value": "500",
+            "created_at": "2026-07-14T15:01:01.832Z",
+            "module": 1,
+            "updated_at": "2026-07-14T15:01:01.832Z"
+        }
+    },
+    {
+        "model": "catalog.planmodule",
+        "pk": 2,
+        "fields": {
+            "plan": 1,
+            "is_enabled": false,
+            "limit_value": null,
+            "created_at": "2026-07-14T15:01:01.833Z",
+            "module": 2,
+            "updated_at": "2026-07-14T15:01:01.833Z"
+        }
+    },
+    {
+        "model": "catalog.planmodule",
+        "pk": 3,
+        "fields": {
+            "plan": 2,
+            "is_enabled": true,
+            "limit_value": "unlimited",
+            "created_at": "2026-07-14T15:02:07.571Z",
+            "module": 1,
+            "updated_at": "2026-07-14T15:02:07.571Z"
+        }
+    },
+    {
+        "model": "catalog.planmodule",
+        "pk": 4,
+        "fields": {
+            "plan": 2,
+            "is_enabled": true,
+            "limit_value": "unlimited",
+            "created_at": "2026-07-14T15:02:07.572Z",
+            "module": 2,
+            "updated_at": "2026-07-14T15:02:07.572Z"
+        }
+    }
+]
