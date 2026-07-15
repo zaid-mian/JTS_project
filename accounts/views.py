@@ -4,7 +4,8 @@ from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import (
     PasswordResetConfirmView as DjangoPasswordResetConfirmView,
-    PasswordResetCompleteView as DjangoPasswordResetCompleteView
+    PasswordResetCompleteView as DjangoPasswordResetCompleteView,
+    INTERNAL_RESET_SESSION_TOKEN
 )
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
@@ -149,7 +150,7 @@ class ForgotPasswordView(View):
         reset_path = reverse('accounts:password_reset_confirm', kwargs={'uidb64': uidb64, 'token': token})
         reset_link = request.build_absolute_uri(reset_path)
 
-        subject = "MEMS Platform — Password Reset Request"
+        subject = "MEMS Platform - Password Reset Request"
         message = (
             f"Hello,\n\n"
             f"You requested a password reset for your MEMS account.\n"
@@ -177,6 +178,8 @@ class PasswordResetConfirmView(DjangoPasswordResetConfirmView):
     """
     template_name = 'accounts/password_reset_confirm.html'
     success_url = reverse_lazy('accounts:password_reset_complete')
+
+
 
 
 class PasswordResetCompleteView(DjangoPasswordResetCompleteView):
