@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -382,8 +383,13 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         @keyframes fadeInUp {
@@ -391,6 +397,7 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -402,6 +409,7 @@
                 opacity: 0;
                 transform: translateY(-20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -409,6 +417,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <header>
@@ -419,390 +428,396 @@
 
         <!-- Notice bar -->
         <div class="notice-banner">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="16" x2="12" y2="12"/>
-                <line x1="12" y1="8" x2="12.01" y2="8"/>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
             </svg>
-            <div>
+            <!-- <div>
                 <strong>Scope Notice:</strong> Registration and payment workflow will be integrated later by the Registration team. This page demonstrates only the Authentication module.
             </div>
+        </div> -->
+
+            <div class="demo-grid">
+                <!-- 1. Login Card -->
+                <div class="card">
+                    <div>
+                        <h2>Section 1 — Login</h2>
+                        <div class="form-group">
+                            <label for="login-email">Email</label>
+                            <input type="email" id="login-email" placeholder="user@gmail.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Password</label>
+                            <input type="password" id="login-password" placeholder="••••••••" required>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn" id="btn-login" onclick="handleLogin()">Login</button>
+                        <div class="status-msg" id="msg-login"></div>
+
+                        <div class="success-panel" id="panel-user" style="display: none;">
+                            <h3>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                                Login Successful
+                            </h3>
+                            <ul class="user-details">
+                                <li><span>User ID</span><span id="user-id">-</span></li>
+                                <li><span>Email</span><span id="user-email">-</span></li>
+                                <li><span>First Name</span><span id="user-first">-</span></li>
+                                <li><span>Last Name</span><span id="user-last">-</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Logout Card -->
+                <div class="card">
+                    <div>
+                        <h2>Section 2 — Logout</h2>
+                        <p style="color: var(--text-muted); font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
+                            Sends a POST request to terminate the active user session cookie (`sessionid`) on the Django
+                            backend.
+                        </p>
+                    </div>
+                    <div>
+                        <button class="btn btn-danger" id="btn-logout" onclick="handleLogout()">Logout</button>
+                        <div class="status-msg" id="msg-logout"></div>
+                    </div>
+                </div>
+
+                <!-- 3. Forgot Password Card -->
+                <div class="card">
+                    <div>
+                        <h2>Section 3 — Forgot Password</h2>
+                        <div class="form-group">
+                            <label for="forgot-email">Email</label>
+                            <input type="email" id="forgot-email" placeholder="user@gmail.com" required>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn" id="btn-forgot" onclick="handleForgotPassword()">Send Reset Link</button>
+                        <div class="status-msg" id="msg-forgot"></div>
+                        <div class="info-note">
+                            <strong>Note:</strong> In development, the reset email is printed in the Django console
+                            using the custom development email backend.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Change Password Card -->
+                <div class="card">
+                    <div>
+                        <h2>Section 4 — Change Password</h2>
+                        <div class="form-group">
+                            <label for="change-current">Current Password</label>
+                            <input type="password" id="change-current" placeholder="••••••••" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="change-new">New Password</label>
+                            <input type="password" id="change-new" placeholder="••••••••" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="change-confirm">Confirm Password</label>
+                            <input type="password" id="change-confirm" placeholder="••••••••" required>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn" id="btn-change" onclick="handleChangePassword()">Change Password</button>
+                        <div class="status-msg" id="msg-change"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QA Testing Dashboard Panel -->
+            <div class="card qa-card">
+                <h2>Last API Response</h2>
+                <div class="qa-grid">
+                    <div class="qa-field">
+                        <span>Tested Endpoint</span>
+                        <span id="qa-endpoint">-</span>
+                    </div>
+                    <div class="qa-field">
+                        <span>Status</span>
+                        <span><span id="qa-status" class="qa-badge neutral">-</span></span>
+                    </div>
+                    <div class="qa-field">
+                        <span>Response Time</span>
+                        <span id="qa-time">-</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>API Message</label>
+                    <div id="qa-message"
+                        style="font-size: 15px; font-weight: 500; margin-bottom: 10px; color: #ffffff;">-</div>
+                </div>
+                <div class="form-group">
+                    <label>Raw Payload Response</label>
+                    <div class="raw-box" id="qa-raw">Waiting for API request...</div>
+                </div>
+            </div>
         </div>
 
-        <div class="demo-grid">
-            <!-- 1. Login Card -->
-            <div class="card">
-                <div>
-                    <h2>Section 1 — Login</h2>
-                    <div class="form-group">
-                        <label for="login-email">Email</label>
-                        <input type="email" id="login-email" placeholder="user@gmail.com" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="login-password">Password</label>
-                        <input type="password" id="login-password" placeholder="••••••••" required>
-                    </div>
-                </div>
-                <div>
-                    <button class="btn" id="btn-login" onclick="handleLogin()">Login</button>
-                    <div class="status-msg" id="msg-login"></div>
-                    
-                    <div class="success-panel" id="panel-user" style="display: none;">
-                        <h3>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="20 6 9 17 4 12"/>
-                            </svg>
-                            Login Successful
-                        </h3>
-                        <ul class="user-details">
-                            <li><span>User ID</span><span id="user-id">-</span></li>
-                            <li><span>Email</span><span id="user-email">-</span></li>
-                            <li><span>First Name</span><span id="user-first">-</span></li>
-                            <li><span>Last Name</span><span id="user-last">-</span></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+        <script>
+            // Inject CSRF Token from Django context as a fallback
+            const csrfToken = "{{ csrf_token }}";
 
-            <!-- 2. Logout Card -->
-            <div class="card">
-                <div>
-                    <h2>Section 2 — Logout</h2>
-                    <p style="color: var(--text-muted); font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
-                        Sends a POST request to terminate the active user session cookie (`sessionid`) on the Django backend.
-                    </p>
-                </div>
-                <div>
-                    <button class="btn btn-danger" id="btn-logout" onclick="handleLogout()">Logout</button>
-                    <div class="status-msg" id="msg-logout"></div>
-                </div>
-            </div>
+            // Helper to read the latest cookie value from browser cookies dynamically
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
 
-            <!-- 3. Forgot Password Card -->
-            <div class="card">
-                <div>
-                    <h2>Section 3 — Forgot Password</h2>
-                    <div class="form-group">
-                        <label for="forgot-email">Email</label>
-                        <input type="email" id="forgot-email" placeholder="user@gmail.com" required>
-                    </div>
-                </div>
-                <div>
-                    <button class="btn" id="btn-forgot" onclick="handleForgotPassword()">Send Reset Link</button>
-                    <div class="status-msg" id="msg-forgot"></div>
-                    <div class="info-note">
-                        <strong>Note:</strong> In development, the reset email is printed in the Django console using the custom development email backend.
-                    </div>
-                </div>
-            </div>
+            // Helper to update the QA Dashboard metrics
+            function updateQADashboard(endpoint, statusText, statusCode, duration, message, rawBody) {
+                document.getElementById('qa-endpoint').innerText = endpoint;
 
-            <!-- 4. Change Password Card -->
-            <div class="card">
-                <div>
-                    <h2>Section 4 — Change Password</h2>
-                    <div class="form-group">
-                        <label for="change-current">Current Password</label>
-                        <input type="password" id="change-current" placeholder="••••••••" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="change-new">New Password</label>
-                        <input type="password" id="change-new" placeholder="••••••••" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="change-confirm">Confirm Password</label>
-                        <input type="password" id="change-confirm" placeholder="••••••••" required>
-                    </div>
-                </div>
-                <div>
-                    <button class="btn" id="btn-change" onclick="handleChangePassword()">Change Password</button>
-                    <div class="status-msg" id="msg-change"></div>
-                </div>
-            </div>
-        </div>
+                const statusEl = document.getElementById('qa-status');
+                statusEl.innerText = `${statusCode} ${statusText}`;
+                if (statusCode >= 200 && statusCode < 300) {
+                    statusEl.className = 'qa-badge success';
+                } else {
+                    statusEl.className = 'qa-badge error';
+                }
 
-        <!-- QA Testing Dashboard Panel -->
-        <div class="card qa-card">
-            <h2>Last API Response</h2>
-            <div class="qa-grid">
-                <div class="qa-field">
-                    <span>Tested Endpoint</span>
-                    <span id="qa-endpoint">-</span>
-                </div>
-                <div class="qa-field">
-                    <span>Status</span>
-                    <span><span id="qa-status" class="qa-badge neutral">-</span></span>
-                </div>
-                <div class="qa-field">
-                    <span>Response Time</span>
-                    <span id="qa-time">-</span>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>API Message</label>
-                <div id="qa-message" style="font-size: 15px; font-weight: 500; margin-bottom: 10px; color: #ffffff;">-</div>
-            </div>
-            <div class="form-group">
-                <label>Raw Payload Response</label>
-                <div class="raw-box" id="qa-raw">Waiting for API request...</div>
-            </div>
-        </div>
-    </div>
+                document.getElementById('qa-time').innerText = `${duration} ms`;
+                document.getElementById('qa-message').innerText = message || '-';
 
-    <script>
-        // Inject CSRF Token from Django context as a fallback
-        const csrfToken = "{{ csrf_token }}";
+                const rawBox = document.getElementById('qa-raw');
+                rawBox.innerText = typeof rawBody === 'object' ? JSON.stringify(rawBody, null, 2) : rawBody;
+            }
 
-        // Helper to read the latest cookie value from browser cookies dynamically
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    // Does this cookie string begin with the name we want?
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
+            // Helper to handle status message display
+            function displayMessage(elementId, text, isSuccess) {
+                const el = document.getElementById(elementId);
+                el.innerText = text;
+                el.className = `status-msg ${isSuccess ? 'success' : 'error'}`;
+            }
+
+            function clearMessage(elementId) {
+                const el = document.getElementById(elementId);
+                el.innerText = '';
+                el.className = 'status-msg';
+            }
+
+            // Actions Loader Toggles
+            function setButtonLoading(buttonId, isLoading) {
+                const btn = document.getElementById(buttonId);
+                if (isLoading) {
+                    btn.disabled = true;
+                    btn.dataset.originalText = btn.innerText;
+                    btn.innerText = 'Processing...';
+                } else {
+                    btn.disabled = false;
+                    if (btn.dataset.originalText) {
+                        btn.innerText = btn.dataset.originalText;
                     }
                 }
             }
-            return cookieValue;
-        }
 
-        // Helper to update the QA Dashboard metrics
-        function updateQADashboard(endpoint, statusText, statusCode, duration, message, rawBody) {
-            document.getElementById('qa-endpoint').innerText = endpoint;
-            
-            const statusEl = document.getElementById('qa-status');
-            statusEl.innerText = `${statusCode} ${statusText}`;
-            if (statusCode >= 200 && statusCode < 300) {
-                statusEl.className = 'qa-badge success';
-            } else {
-                statusEl.className = 'qa-badge error';
-            }
+            // Generic API fetch wrapper to enforce content-type parsing checks, timer captures, and audit updates
+            async function fetchAPI(endpoint, method, body = null) {
+                const startTime = performance.now();
 
-            document.getElementById('qa-time').innerText = `${duration} ms`;
-            document.getElementById('qa-message').innerText = message || '-';
-            
-            const rawBox = document.getElementById('qa-raw');
-            rawBox.innerText = typeof rawBody === 'object' ? JSON.stringify(rawBody, null, 2) : rawBody;
-        }
+                // Read current CSRF cookie value dynamically before every request
+                const activeCsrfToken = getCookie('csrftoken') || csrfToken;
 
-        // Helper to handle status message display
-        function displayMessage(elementId, text, isSuccess) {
-            const el = document.getElementById(elementId);
-            el.innerText = text;
-            el.className = `status-msg ${isSuccess ? 'success' : 'error'}`;
-        }
-
-        function clearMessage(elementId) {
-            const el = document.getElementById(elementId);
-            el.innerText = '';
-            el.className = 'status-msg';
-        }
-
-        // Actions Loader Toggles
-        function setButtonLoading(buttonId, isLoading) {
-            const btn = document.getElementById(buttonId);
-            if (isLoading) {
-                btn.disabled = true;
-                btn.dataset.originalText = btn.innerText;
-                btn.innerText = 'Processing...';
-            } else {
-                btn.disabled = false;
-                if (btn.dataset.originalText) {
-                    btn.innerText = btn.dataset.originalText;
+                const options = {
+                    method: method,
+                    credentials: 'same-origin', // Enforce secure cookie transmission
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': activeCsrfToken
+                    }
+                };
+                if (body) {
+                    options.body = JSON.stringify(body);
                 }
-            }
-        }
 
-        // Generic API fetch wrapper to enforce content-type parsing checks, timer captures, and audit updates
-        async function fetchAPI(endpoint, method, body = null) {
-            const startTime = performance.now();
-            
-            // Read current CSRF cookie value dynamically before every request
-            const activeCsrfToken = getCookie('csrftoken') || csrfToken;
-            
-            const options = {
-                method: method,
-                credentials: 'same-origin', // Enforce secure cookie transmission
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': activeCsrfToken
+
+                let response;
+                let duration;
+                let parsedBody = null;
+                let isJson = false;
+
+                try {
+                    response = await fetch(endpoint, options);
+                    duration = Math.round(performance.now() - startTime);
+
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        parsedBody = await response.json();
+                        isJson = true;
+                    } else {
+                        parsedBody = await response.text();
+                    }
+                } catch (networkError) {
+                    duration = Math.round(performance.now() - startTime);
+                    updateQADashboard(
+                        `${method} ${endpoint}`,
+                        'Network Error',
+                        0,
+                        duration,
+                        networkError.message,
+                        networkError.stack || networkError.message
+                    );
+                    throw networkError;
                 }
-            };
-            if (body) {
-                options.body = JSON.stringify(body);
-            }
 
-
-            let response;
-            let duration;
-            let parsedBody = null;
-            let isJson = false;
-
-            try {
-                response = await fetch(endpoint, options);
-                duration = Math.round(performance.now() - startTime);
-                
-                const contentType = response.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
-                    parsedBody = await response.json();
-                    isJson = true;
+                // Extract message for display
+                let displayMsg = '';
+                if (isJson) {
+                    displayMsg = parsedBody.message || parsedBody.error || (parsedBody.errors ? parsedBody.errors.join(' ') : '');
                 } else {
-                    parsedBody = await response.text();
+                    displayMsg = `HTML template returned (Status: ${response.status}).`;
                 }
-            } catch (networkError) {
-                duration = Math.round(performance.now() - startTime);
+
                 updateQADashboard(
                     `${method} ${endpoint}`,
-                    'Network Error',
-                    0,
+                    response.statusText || (response.ok ? 'OK' : 'Error'),
+                    response.status,
                     duration,
-                    networkError.message,
-                    networkError.stack || networkError.message
+                    displayMsg || (response.ok ? 'Transaction successful' : 'Transaction failed'),
+                    parsedBody
                 );
-                throw networkError;
+
+                if (!response.ok) {
+                    throw {
+                        status: response.status,
+                        statusText: response.statusText,
+                        message: displayMsg || `API error code: ${response.status}`,
+                        body: parsedBody
+                    };
+                }
+
+                return parsedBody;
             }
 
-            // Extract message for display
-            let displayMsg = '';
-            if (isJson) {
-                displayMsg = parsedBody.message || parsedBody.error || (parsedBody.errors ? parsedBody.errors.join(' ') : '');
-            } else {
-                displayMsg = `HTML template returned (Status: ${response.status}).`;
+            // Handle Login
+            async function handleLogin() {
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+                const msgId = 'msg-login';
+                const panelId = 'panel-user';
+
+                if (!email || !password) {
+                    displayMessage(msgId, 'Please fill in all fields.', false);
+                    return;
+                }
+
+                clearMessage(msgId);
+                document.getElementById(panelId).style.display = 'none';
+                setButtonLoading('btn-login', true);
+
+                try {
+                    const data = await fetchAPI('/api/auth/login/', 'POST', { email, password });
+                    setButtonLoading('btn-login', false);
+                    displayMessage(msgId, 'Login Successful!', true);
+
+                    // Read from data.user.* as returned by API
+                    const user = data.user;
+                    document.getElementById('user-id').innerText = user.id;
+                    document.getElementById('user-email').innerText = user.email;
+                    document.getElementById('user-first').innerText = user.first_name || 'N/A';
+                    document.getElementById('user-last').innerText = user.last_name || 'N/A';
+
+                    document.getElementById(panelId).style.display = 'block';
+                } catch (error) {
+                    setButtonLoading('btn-login', false);
+                    displayMessage(msgId, error.message || 'Login failed. Please verify credentials.', false);
+                }
             }
 
-            updateQADashboard(
-                `${method} ${endpoint}`,
-                response.statusText || (response.ok ? 'OK' : 'Error'),
-                response.status,
-                duration,
-                displayMsg || (response.ok ? 'Transaction successful' : 'Transaction failed'),
-                parsedBody
-            );
+            // Handle Logout
+            async function handleLogout() {
+                const msgId = 'msg-logout';
+                clearMessage(msgId);
+                setButtonLoading('btn-logout', true);
 
-            if (!response.ok) {
-                throw {
-                    status: response.status,
-                    statusText: response.statusText,
-                    message: displayMsg || `API error code: ${response.status}`,
-                    body: parsedBody
-                };
+                try {
+                    const data = await fetchAPI('/api/auth/logout/', 'POST');
+                    setButtonLoading('btn-logout', false);
+                    displayMessage(msgId, data.message || 'Logout successful!', true);
+                    document.getElementById('panel-user').style.display = 'none';
+                } catch (error) {
+                    setButtonLoading('btn-logout', false);
+                    displayMessage(msgId, error.message || 'Logout failed.', false);
+                }
             }
 
-            return parsedBody;
-        }
+            // Handle Forgot Password
+            async function handleForgotPassword() {
+                const email = document.getElementById('forgot-email').value;
+                const msgId = 'msg-forgot';
 
-        // Handle Login
-        async function handleLogin() {
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            const msgId = 'msg-login';
-            const panelId = 'panel-user';
+                if (!email) {
+                    displayMessage(msgId, 'Email address is required.', false);
+                    return;
+                }
 
-            if (!email || !password) {
-                displayMessage(msgId, 'Please fill in all fields.', false);
-                return;
+                clearMessage(msgId);
+                setButtonLoading('btn-forgot', true);
+
+                try {
+                    const data = await fetchAPI('/api/auth/forgot-password/', 'POST', { email });
+                    setButtonLoading('btn-forgot', false);
+                    // Clear message with Console email notice
+                    displayMessage(msgId, `${data.message} Link printed in Django console.`, true);
+                } catch (error) {
+                    setButtonLoading('btn-forgot', false);
+                    displayMessage(msgId, error.message || 'Failed to submit request.', false);
+                }
             }
 
-            clearMessage(msgId);
-            document.getElementById(panelId).style.display = 'none';
-            setButtonLoading('btn-login', true);
+            // Handle Change Password
+            async function handleChangePassword() {
+                const current_password = document.getElementById('change-current').value;
+                const new_password = document.getElementById('change-new').value;
+                const confirm_new_password = document.getElementById('change-confirm').value;
+                const msgId = 'msg-change';
 
-            try {
-                const data = await fetchAPI('/api/auth/login/', 'POST', { email, password });
-                setButtonLoading('btn-login', false);
-                displayMessage(msgId, 'Login Successful!', true);
-                
-                // Read from data.user.* as returned by API
-                const user = data.user;
-                document.getElementById('user-id').innerText = user.id;
-                document.getElementById('user-email').innerText = user.email;
-                document.getElementById('user-first').innerText = user.first_name || 'N/A';
-                document.getElementById('user-last').innerText = user.last_name || 'N/A';
-                
-                document.getElementById(panelId).style.display = 'block';
-            } catch (error) {
-                setButtonLoading('btn-login', false);
-                displayMessage(msgId, error.message || 'Login failed. Please verify credentials.', false);
+                if (!current_password || !new_password || !confirm_new_password) {
+                    displayMessage(msgId, 'All fields are required.', false);
+                    return;
+                }
+
+                clearMessage(msgId);
+                setButtonLoading('btn-change', true);
+
+                try {
+                    const data = await fetchAPI('/api/auth/change-password/', 'POST', {
+                        current_password,
+                        new_password,
+                        confirm_new_password
+                    });
+                    setButtonLoading('btn-change', false);
+                    displayMessage(msgId, data.message || 'Password changed successfully!', true);
+
+                    // Clear fields
+                    document.getElementById('change-current').value = '';
+                    document.getElementById('change-new').value = '';
+                    document.getElementById('change-confirm').value = '';
+                } catch (error) {
+                    setButtonLoading('btn-change', false);
+                    displayMessage(msgId, error.message || 'Failed to change password.', false);
+                }
             }
-        }
-
-        // Handle Logout
-        async function handleLogout() {
-            const msgId = 'msg-logout';
-            clearMessage(msgId);
-            setButtonLoading('btn-logout', true);
-
-            try {
-                const data = await fetchAPI('/api/auth/logout/', 'POST');
-                setButtonLoading('btn-logout', false);
-                displayMessage(msgId, data.message || 'Logout successful!', true);
-                document.getElementById('panel-user').style.display = 'none';
-            } catch (error) {
-                setButtonLoading('btn-logout', false);
-                displayMessage(msgId, error.message || 'Logout failed.', false);
-            }
-        }
-
-        // Handle Forgot Password
-        async function handleForgotPassword() {
-            const email = document.getElementById('forgot-email').value;
-            const msgId = 'msg-forgot';
-
-            if (!email) {
-                displayMessage(msgId, 'Email address is required.', false);
-                return;
-            }
-
-            clearMessage(msgId);
-            setButtonLoading('btn-forgot', true);
-
-            try {
-                const data = await fetchAPI('/api/auth/forgot-password/', 'POST', { email });
-                setButtonLoading('btn-forgot', false);
-                // Clear message with Console email notice
-                displayMessage(msgId, `${data.message} Link printed in Django console.`, true);
-            } catch (error) {
-                setButtonLoading('btn-forgot', false);
-                displayMessage(msgId, error.message || 'Failed to submit request.', false);
-            }
-        }
-
-        // Handle Change Password
-        async function handleChangePassword() {
-            const current_password = document.getElementById('change-current').value;
-            const new_password = document.getElementById('change-new').value;
-            const confirm_new_password = document.getElementById('change-confirm').value;
-            const msgId = 'msg-change';
-
-            if (!current_password || !new_password || !confirm_new_password) {
-                displayMessage(msgId, 'All fields are required.', false);
-                return;
-            }
-
-            clearMessage(msgId);
-            setButtonLoading('btn-change', true);
-
-            try {
-                const data = await fetchAPI('/api/auth/change-password/', 'POST', {
-                    current_password,
-                    new_password,
-                    confirm_new_password
-                });
-                setButtonLoading('btn-change', false);
-                displayMessage(msgId, data.message || 'Password changed successfully!', true);
-                
-                // Clear fields
-                document.getElementById('change-current').value = '';
-                document.getElementById('change-new').value = '';
-                document.getElementById('change-confirm').value = '';
-            } catch (error) {
-                setButtonLoading('btn-change', false);
-                displayMessage(msgId, error.message || 'Failed to change password.', false);
-            }
-        }
-    </script>
+        </script>
 </body>
+
 </html>
