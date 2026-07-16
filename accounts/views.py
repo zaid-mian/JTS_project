@@ -198,4 +198,171 @@ class AccountsDemoView(TemplateView):
     template_name = 'accounts/demo.html'
 
 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.utils import timezone
+from accounts.forms import OwnerRegistrationForm
+from accounts.models import Organization, OwnerProfile, RegistrationRequest
+
+def register_view(request):
+    if request.method == 'POST':
+        form = OwnerRegistrationForm(request.POST, request.FILES)
+        if form.is_valid():
+            data = form.cleaned_data
+            user = CustomUser.objects.create_user(
+                username=data['email'],
+                email=data['email'],
+                password=data['password'],
+                first_name=data['full_name'],
+                is_active=False
+            )
+            org = Organization.objects.create(
+                name=data['company_name'],
+                logo=data.get('logo')
+            )
+            profile = OwnerProfile.objects.create(
+                user=user,
+                organization=org,
+                cnic=data['cnic'],
+                phone_number=data['phone_number'],
+                country=data['country'],
+                address=data['address'],
+            )
+            RegistrationRequest.objects.create(owner_profile=profile)
+            messages.success(request, "Registration submitted! Await admin approval.")
+            return redirect('accounts:html_login')
+    else:
+        form = OwnerRegistrationForm()
+    return render(request, 'accounts/register.html', {'form': form})
+
+
+def login_view(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        try:
+            user_obj = CustomUser.objects.get(email=email)
+            username = user_obj.username
+        except CustomUser.DoesNotExist:
+            username = email
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is None:
+            try:
+                user_check = CustomUser.objects.get(email=email)
+                if not user_check.is_active and user_check.check_password(password):
+                    profile = OwnerProfile.objects.filter(user=user_check).first()
+                    reg = RegistrationRequest.objects.filter(owner_profile=profile).first()
+                    if reg and reg.status == 'pending':
+                        return render(request, 'accounts/pending.html')
+                    if reg and reg.status == 'rejected':
+                        return render(request, 'accounts/owner_profile_view.html', {
+                            'reg': reg,
+                            'is_admin_view': False,
+                            'show_rejection_popup': True,
+                        })
+            except CustomUser.DoesNotExist:
+                pass
+            messages.error(request, "Invalid email or password.")
+            return render(request, 'accounts/login.html')
+
+        login(request, user)
+        return redirect('accounts:redirect_after_login')
+
+    return render(request, 'accounts/login.html')
+
+
+@login_required
+def redirect_after_login(request):
+    if request.user.is_superuser:
+        return redirect('accounts:admin_dashboard')
+    return redirect('accounts:owner_dashboard')
+
+
+@login_required
+def owner_dashboard(request):
+    return render(request, 'accounts/owner_dashboard.html')
+
+
+@login_required
+def admin_dashboard(request):
+    if not request.user.is_superuser:
+        return redirect('accounts:html_login')
+
+    requests_qs = RegistrationRequest.objects.select_related('owner_profile__user', 'owner_profile__organization').all()
+
+    status_filter = request.GET.get('status')
+    date_filter = request.GET.get('date')
+
+    if status_filter:
+        requests_qs = requests_qs.filter(status=status_filter)
+    if date_filter:
+        requests_qs = requests_qs.filter(submitted_at__date=date_filter)
+
+    return render(request, 'accounts/admin_dashboard.html', {
+        'requests': requests_qs.order_by('-submitted_at'),
+        'status_filter': status_filter,
+        'date_filter': date_filter,
+    })
+
+
+@login_required
+def owner_profile_detail(request, req_id):
+    if not request.user.is_superuser:
+        return redirect('accounts:html_login')
+    reg = get_object_or_404(RegistrationRequest, id=req_id)
+    return render(request, 'accounts/owner_profile_view.html', {
+        'reg': reg,
+        'is_admin_view': True,
+        'show_rejection_popup': False,
+    })
+
+
+@login_required
+def approve_request(request, req_id):
+    if not request.user.is_superuser:
+        return redirect('accounts:html_login')
+    reg = get_object_or_404(RegistrationRequest, id=req_id)
+    reg.status = 'approved'
+    reg.reviewed_at = timezone.now()
+    reg.save()
+    reg.owner_profile.user.is_active = True
+    reg.owner_profile.user.save()
+    reg.owner_profile.organization.is_active = True
+    reg.owner_profile.organization.save()
+    messages.success(request, "Request approved.")
+    return redirect('accounts:admin_dashboard')
+
+
+@login_required
+def reject_request(request, req_id):
+    if not request.user.is_superuser:
+        return redirect('accounts:html_login')
+    reg = get_object_or_404(RegistrationRequest, id=req_id)
+    if request.method == 'POST':
+        reason = request.POST.get('reason')
+        reg.status = 'rejected'
+        reg.rejection_reason = reason
+        reg.reviewed_at = timezone.now()
+        reg.save()
+
+        send_mail(
+            subject="Your CRM Registration was Rejected",
+            message=f"Hello {reg.owner_profile.user.first_name},\n\nYour registration for '{reg.owner_profile.organization.name}' was rejected.\n\nReason: {reason}\n\nRegards,\nOrbitCRM Team",
+            from_email=None,
+            recipient_list=[reg.owner_profile.user.email],
+        )
+        messages.success(request, "Request rejected and email sent.")
+        return redirect('accounts:admin_dashboard')
+    return redirect('accounts:owner_profile_detail', req_id=req_id)
+
+
+def html_logout_view(request):
+    logout(request)
+    return redirect('accounts:html_login')
+
+
+
 

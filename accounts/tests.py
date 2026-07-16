@@ -5,7 +5,8 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from accounts.models import CustomUser
+from accounts.models import CustomUser, Organization, OwnerProfile, RegistrationRequest
+
 
 class AccountsAuthTests(TestCase):
     def setUp(self):
@@ -264,6 +265,99 @@ class AccountsAuthTests(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Authentication Demo")
+
+    def test_owner_registration_workflow(self):
+        # 1. Register a new owner
+        register_url = reverse('accounts:register')
+        response = self.client.post(
+            register_url,
+            data={
+                "full_name": "John Doe",
+                "email": "john@doe.com",
+                "password": "SecurePassword123!",
+                "confirm_password": "SecurePassword123!",
+                "company_name": "Doe Enterprise",
+                "phone_number": "+1234567890",
+                "country": "US",
+                "address": "123 Main St",
+                "cnic": "12345-6789012-3"
+            }
+        )
+        self.assertEqual(response.status_code, 302) # Redirect to login page
+        
+        # Verify db records
+        user = CustomUser.objects.get(email="john@doe.com")
+        self.assertFalse(user.is_active)
+        self.assertEqual(user.first_name, "John Doe")
+        
+        profile = OwnerProfile.objects.get(user=user)
+        self.assertEqual(profile.cnic, "12345-6789012-3")
+        self.assertEqual(profile.organization.name, "Doe Enterprise")
+        self.assertFalse(profile.organization.is_active)
+        
+        reg_request = RegistrationRequest.objects.get(owner_profile=profile)
+        self.assertEqual(reg_request.status, "pending")
+
+        # 2. Approve the request as superuser
+        superuser = CustomUser.objects.create_superuser(
+            username="adminuser",
+            email="admin@example.com",
+            password="adminpassword123"
+        )
+        self.client.login(username="admin@example.com", password="adminpassword123")
+        
+        approve_url = reverse('accounts:approve_request', kwargs={"req_id": reg_request.id})
+        approve_response = self.client.get(approve_url)
+        self.assertEqual(approve_response.status_code, 302) # Redirect to admin dashboard
+        
+        # Verify approval details
+        reg_request.refresh_from_db()
+        self.assertEqual(reg_request.status, "approved")
+        self.assertTrue(reg_request.owner_profile.user.is_active)
+        self.assertTrue(reg_request.owner_profile.organization.is_active)
+
+    def test_owner_registration_rejection(self):
+        # 1. Register a new owner
+        register_url = reverse('accounts:register')
+        self.client.post(
+            register_url,
+            data={
+                "full_name": "Jane Doe",
+                "email": "jane@doe.com",
+                "password": "SecurePassword123!",
+                "confirm_password": "SecurePassword123!",
+                "company_name": "Jane Enterprise",
+                "phone_number": "+1234567890",
+                "country": "US",
+                "address": "456 Oak St",
+                "cnic": "12345-6789012-4"
+            }
+        )
+        user = CustomUser.objects.get(email="jane@doe.com")
+        profile = OwnerProfile.objects.get(user=user)
+        reg_request = RegistrationRequest.objects.get(owner_profile=profile)
+
+        # 2. Log in as superuser and reject the request
+        superuser = CustomUser.objects.create_superuser(
+            username="adminuser2",
+            email="admin2@example.com",
+            password="adminpassword123"
+        )
+        self.client.login(username="admin2@example.com", password="adminpassword123")
+        
+        reject_url = reverse('accounts:reject_request', kwargs={"req_id": reg_request.id})
+        reject_response = self.client.post(reject_url, data={"reason": "Invalid business document format."})
+        self.assertEqual(reject_response.status_code, 302)
+        
+        # Verify rejection details
+        reg_request.refresh_from_db()
+        self.assertEqual(reg_request.status, "rejected")
+        self.assertEqual(reg_request.rejection_reason, "Invalid business document format.")
+        self.assertFalse(reg_request.owner_profile.user.is_active)
+        self.assertFalse(reg_request.owner_profile.organization.is_active)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("rejected", mail.outbox[0].body)
+
 
 
 

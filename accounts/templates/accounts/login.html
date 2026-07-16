@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - OrbitCRM</title>
+    <style>
+        body { font-family: Arial, sans-serif; background:#f4f6f8; display:flex; justify-content:center; align-items:center; min-height:100vh; margin:0; }
+        .box { background:#fff; padding:30px 40px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.1); width:360px; }
+        h2 { text-align:center; color:#2c3e50; }
+        label { display:block; margin-bottom:4px; font-weight:bold; color:#34495e; font-size:14px; }
+        input { width:100%; padding:8px; margin-bottom:15px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; }
+        button { width:100%; padding:10px; background:#2980b9; color:#fff; border:none; border-radius:4px; cursor:pointer; }
+        button:hover { background:#1f6391; }
+        .msg { padding:8px; border-radius:4px; margin-bottom:10px; background:#f8d7da; color:#721c24; font-size:14px; }
+        .link { text-align:center; margin-top:15px; font-size:14px; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>Login</h2>
+        {% if messages %}
+            {% for m in messages %}<div class="msg">{{ m }}</div>{% endfor %}
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <label>Email</label>
+            <input type="email" name="email" required>
+            <label>Password</label>
+            <input type="password" name="password" required>
+            <button type="submit">Login</button>
+        </form>
+        <div class="link">New business? <a href="{% url 'accounts:register' %}">Register here</a></div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin Dashboard</title>
+<style>
+body { font-family: Arial; margin: 40px; }
+table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+th { background: #2c3e50; color: white; }
+.profile-icon { text-decoration: none; font-size: 18px; }
+</style>
+</head>
+<body>
+    <h2>Admin Approval Dashboard</h2>
+    <a href="{% url 'accounts:html_logout' %}">Logout</a>
+    <form method="get" style="margin-top:15px;">
+        Status:
+        <select name="status">
+            <option value="">All</option>
+            <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+            <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+            <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+        </select>
+        Date: <input type="date" name="date" value="{{ date_filter|default:'' }}">
+        <button type="submit">Filter</button>
+    </form>
+
+    <table>
+        <tr>
+            <th>Owner</th><th>Company</th><th>CNIC</th><th>Status</th><th>Submitted</th><th>Profile</th>
+        </tr>
+        {% for r in requests %}
+        <tr>
+            <td>{{ r.owner_profile.user.first_name }} ({{ r.owner_profile.user.email }})</td>
+            <td>{{ r.owner_profile.organization.name }}</td>
+            <td>{{ r.owner_profile.cnic }}</td>
+            <td>{{ r.status }}</td>
+            <td>{{ r.submitted_at }}</td>
+            <td>
+                <a class="profile-icon" href="{% url 'accounts:owner_profile_detail' r.id %}" title="View Profile">🧾</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

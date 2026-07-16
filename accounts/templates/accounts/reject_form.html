@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head><title>Reject Request</title></head>
+<body style="font-family:Arial; margin:40px;">
+    <h2>Reject Request - {{ reg.owner_profile.organization.name }}</h2>
+    <form method="post">
+        {% csrf_token %}
+        <label>Reason for rejection:</label><br>
+        <textarea name="reason" rows="4" cols="50" required></textarea><br><br>
+        <button type="submit">Confirm Reject</button>
+    </form>
+</body>
+</html>

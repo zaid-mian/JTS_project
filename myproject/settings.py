@@ -127,5 +127,10 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 EMAIL_BACKEND = 'accounts.email_backend.DevelopmentEmailBackend'
 DEFAULT_FROM_EMAIL = 'no-reply@memsplatform.local'
 
+# Media files (uploaded images like company logos)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+
 
 

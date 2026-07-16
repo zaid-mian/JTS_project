@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html>
+<head><title>Owner Dashboard</title></head>
+<body style="font-family:Arial; margin:40px;">
+    <h2>Welcome, {{ request.user.first_name }}</h2>
+    <p>Your organization dashboard.</p>
+    <a href="{% url 'accounts:html_logout' %}">Logout</a>
+</body>
+</html>
