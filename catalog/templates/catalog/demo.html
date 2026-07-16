@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MEMS SaaS Catalog | Demo Dashboard</title>
+    <title> Demo Dashboard</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -373,12 +374,19 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         @keyframes fadeInUp {
@@ -386,6 +394,7 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -397,6 +406,7 @@
                 opacity: 0;
                 transform: translateY(-20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -407,20 +417,24 @@
             body {
                 padding: 20px 10px;
             }
+
             header h1 {
                 font-size: 28px;
             }
+
             .grid {
                 grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <header>
-            <h1>MEMS Platform Packaging Matrix</h1>
-            <p>Interactive review panel consuming Catalog endpoints to demonstrate modular structures and features configurations.</p>
+            <h1> Packaging Matrix</h1>
+            <p>Interactive review panel consuming Catalog endpoints to demonstrate modular structures and features
+                configurations.</p>
         </header>
 
         <!-- Loading spinner -->
@@ -444,7 +458,7 @@
         <!-- Detail Section (Product Detail) -->
         <div class="detail-view" id="product-detail-view">
             <button class="btn btn-back" onclick="showListView()">← Back to Products</button>
-            
+
             <div class="detail-header">
                 <h2 id="detail-product-name">Product Name</h2>
                 <p id="detail-product-description">Product Description goes here...</p>
@@ -465,7 +479,7 @@
     <script>
         const API_LIST_URL = '/api/products/';
         const API_DETAIL_PREFIX = '/api/products/';
-        
+
         let lastAction = null; // Stash function context for retries
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -516,7 +530,7 @@
                     hideLoading();
                     const container = document.getElementById('product-list-view');
                     container.innerHTML = '';
-                    
+
                     if (products.length === 0) {
                         container.innerHTML = '<p style="text-align: center; color: var(--text-muted); grid-column: 1/-1;">No active products found in the database.</p>';
                     } else {
@@ -533,7 +547,7 @@
                             container.appendChild(card);
                         });
                     }
-                    
+
                     container.style.display = 'grid';
                     document.getElementById('product-list-view').style.opacity = '1';
                 })
@@ -560,7 +574,7 @@
                 })
                 .then(product => {
                     hideLoading();
-                    
+
                     // Populate headers
                     document.getElementById('detail-product-name').innerText = product.name;
                     document.getElementById('detail-product-description').innerText = product.description || 'No description available.';
@@ -594,7 +608,7 @@
                             // Highlight professional or second plan as popular for UI aesthetics
                             const isPremium = plan.name.toLowerCase().includes('pro') || index === 1;
                             planCard.className = `card plan-card ${isPremium ? 'premium' : ''}`;
-                            
+
                             // Formats billing cycle label
                             let cycleText = '/mo';
                             if (plan.billing_cycle === 'yearly') cycleText = '/yr';
@@ -605,13 +619,13 @@
                             if (plan.modules && plan.modules.length > 0) {
                                 plan.modules.forEach(m => {
                                     const enabledClass = m.is_enabled ? '' : 'disabled';
-                                    const iconHtml = m.is_enabled 
-                                        ? '<span class="icon-check">&#10003;</span>' 
+                                    const iconHtml = m.is_enabled
+                                        ? '<span class="icon-check">&#10003;</span>'
                                         : '<span class="icon-cross">&#10007;</span>';
-                                    const limitHtml = m.limit_value 
-                                        ? `<span class="limit-pill">${escapeHtml(m.limit_value)}</span>` 
+                                    const limitHtml = m.limit_value
+                                        ? `<span class="limit-pill">${escapeHtml(m.limit_value)}</span>`
                                         : '';
-                                    
+
                                     modulesListHtml += `
                                         <li class="plan-module-item ${enabledClass}">
                                             ${iconHtml}
@@ -672,4 +686,5 @@
         }
     </script>
 </body>
+
 </html>
