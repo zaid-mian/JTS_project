@@ -1,6 +1,7 @@
 from django.http import JsonResponse, Http404
 from django.shortcuts import get_object_or_404
 from django.views import View
+from django.views.generic import TemplateView
 from catalog.models import Product
 
 class CatalogProductAPIListView(View):
@@ -90,8 +91,6 @@ class CatalogProductAPIDetailView(View):
         }
         return JsonResponse(response_data)
 
-
-from django.views.generic import TemplateView
 
 class CatalogDemoView(TemplateView):
     """

@@ -2,8 +2,13 @@ db.sqlite3
 __pycache__/
 *.pyc
 venv/
+.venv/
+.pytest_cache/
+media/
+.env
 .idea/
 .vscode/
 .DS_Store
 JTS_CRM/
+
 

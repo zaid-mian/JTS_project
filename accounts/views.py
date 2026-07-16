@@ -1,5 +1,7 @@
 import json
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import (
@@ -10,13 +12,16 @@ from django.contrib.auth.views import (
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.http import JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.urls import reverse, reverse_lazy
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from accounts.models import CustomUser
+from accounts.forms import OwnerRegistrationForm
+from accounts.models import CustomUser, Organization, OwnerProfile, RegistrationRequest
 
 @method_decorator(csrf_exempt, name='dispatch')
 class UserLoginView(View):
@@ -197,13 +202,6 @@ class AccountsDemoView(TemplateView):
     """
     template_name = 'accounts/demo.html'
 
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.utils import timezone
-from accounts.forms import OwnerRegistrationForm
-from accounts.models import Organization, OwnerProfile, RegistrationRequest
 
 def register_view(request):
     if request.method == 'POST':
