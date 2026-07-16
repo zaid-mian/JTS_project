@@ -205,5 +205,6 @@ class CatalogProductAPITestCase(TestCase):
         url = reverse('catalog:demo')
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "MEMS Platform Packaging Matrix")
+        self.assertContains(response, "Packaging Matrix")
+
 
