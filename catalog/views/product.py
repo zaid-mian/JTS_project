@@ -12,11 +12,13 @@ class CatalogProductAPIListView(View):
         products = Product.objects.filter(is_active=True)
         data = []
         for product in products:
+            image_url = request.build_absolute_uri(product.image.url) if product.image else None
             data.append({
+                "id": product.id,
                 "name": product.name,
                 "slug": product.slug,
                 "description": product.description,
-                "image": f"https://placehold.co/600x400/png?text={product.name.replace(' ', '+')}",
+                "image": image_url,
                 "status": "active" if product.is_active else "inactive"
             })
         return JsonResponse(data, safe=False)
@@ -80,11 +82,13 @@ class CatalogProductAPIDetailView(View):
                 "modules": plan_modules_list
             })
 
+        image_url = request.build_absolute_uri(product.image.url) if product.image else None
         response_data = {
+            "id": product.id,
             "name": product.name,
             "slug": product.slug,
             "description": product.description,
-            "image": f"https://placehold.co/600x400/png?text={product.name.replace(' ', '+')}",
+            "image": image_url,
             "is_active": product.is_active,
             "modules": modules_data,
             "pricing_plans": plans_data

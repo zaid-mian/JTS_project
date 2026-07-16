@@ -1,12 +1,23 @@
 from django.contrib import admin
 from .models import Product, Module, PricingPlan, PlanModule
 
+from django.utils.html import format_html
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('name', 'slug', 'is_active', 'display_order', 'created_at')
     prepopulated_fields = {'slug': ('name',)}
     search_fields = ('name', 'description')
     list_filter = ('is_active',)
+    fields = ('name', 'slug', 'description', 'image', 'image_preview', 'is_active', 'display_order')
+    readonly_fields = ('image_preview',)
+
+    def image_preview(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" style="max-height: 200px; max-width: 200px; border-radius: 8px;" />', obj.image.url)
+        return "No image uploaded yet."
+    image_preview.short_description = 'Image Preview'
+
 
 @admin.register(Module)
 class ModuleAdmin(admin.ModelAdmin):

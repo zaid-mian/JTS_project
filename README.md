@@ -55,6 +55,13 @@ crm/
 *   **Pricing Plans**: Modular plans supporting custom pricing, billing cycles (monthly/yearly), and statuses.
 *   **Plan Modules & Limits**: Granular control over enabled modules and quantitative usage limits (e.g. max user seats, storage).
 *   **Demo Interface (`/demo/`)**: Interactive list and details viewer presenting modules and plan-specific limits.
+*   **Product Image Support**: Complete support for uploading and managing product images:
+    *   **Django Admin Uploads**: Administrators can upload, replace, and view live previews of product images directly from the Product details view in the Django Admin dashboard.
+    *   **Image Validation**: Uploads are restricted to JPG, JPEG, PNG, and WEBP formats only, and file sizes are strictly capped at a maximum of 5 MB.
+    *   **Automatic Cleanup**: When a product image is replaced or the product itself is deleted, the corresponding file is automatically removed from the local filesystem to prevent orphaned media.
+    *   **Storage Location**: Image files are stored under `media/products/` on the server filesystem.
+    *   **Absolute API URLs**: The product list (`/api/products/`) and detail (`/api/products/<slug>/`) API endpoints return the full, absolute URL path (e.g., `http://127.0.0.1:8000/media/products/filename.png`) in the `image` field (or `null` if no image has been uploaded), allowing direct use by frontend clients.
+
 
 ### 2. Authentication System (`accounts` app)
 *   **API Authentication endpoints**: Fully-tested JSON APIs supporting:
