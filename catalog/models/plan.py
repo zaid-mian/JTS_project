@@ -73,22 +73,12 @@ class PricingPlan(models.Model):
     def get_active_discount(self):
         """
         Retrieves the active discount for this pricing plan.
-        If multiple active discounts exist, returns the one that gives the lowest final price.
+        Under our overlap rules, at most one active discount can exist at any given time.
         """
-        active_discounts = [d for d in self.discounts.all() if d.is_currently_active()]
-        if not active_discounts:
-            return None
-
-        best_discount = None
-        lowest_price = self.price
-
-        for discount in active_discounts:
-            price_after = self.calculate_price_after_discount(discount)
-            if price_after < lowest_price:
-                lowest_price = price_after
-                best_discount = discount
-
-        return best_discount
+        for discount in self.discounts.all():
+            if discount.is_currently_active():
+                return discount
+        return None
 
     def calculate_price_after_discount(self, discount):
         if discount.discount_type == 'percentage':

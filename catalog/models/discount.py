@@ -56,6 +56,32 @@ class Discount(models.Model):
             if self.start_date >= self.end_date:
                 raise ValidationError("Start date must be chronologically before end date.")
 
+        # Overlap validation: only one active discount can exist at a time
+        if self.is_active and hasattr(self, 'pricing_plan') and self.pricing_plan:
+            overlaps = Discount.objects.filter(
+                pricing_plan=self.pricing_plan,
+                is_active=True
+            ).exclude(pk=self.pk)
+
+            for d in overlaps:
+                if not self.start_date and not self.end_date and not d.start_date and not d.end_date:
+                    raise ValidationError(f"An active discount ('{d.name}') with no date limits already exists for this plan.")
+
+                from datetime import datetime
+                from django.utils.timezone import make_aware
+
+                min_dt = make_aware(datetime(1970, 1, 1))
+                max_dt = make_aware(datetime(9999, 12, 31, 23, 59, 59))
+
+                sa = self.start_date if self.start_date else min_dt
+                ea = self.end_date if self.end_date else max_dt
+
+                sb = d.start_date if d.start_date else min_dt
+                eb = d.end_date if d.end_date else max_dt
+
+                if sa < eb and sb < ea:
+                    raise ValidationError(f"This active discount overlaps in time with an existing active discount '{d.name}' for this plan.")
+
         # Value bounds validation
         if self.discount_type == 'percentage':
             if self.value <= 0 or self.value > 100:

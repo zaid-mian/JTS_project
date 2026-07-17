@@ -561,16 +561,18 @@ class DiscountSystemAndUnifiedPricingTest(TestCase):
         )
         self.assertEqual(self.service_plan.final_price, 500.00)
 
-        # 4. Multiple active discounts (best discount applied)
-        d_better = Discount.objects.create(
+        # 4. Overlap active discount validation (must fail)
+        d_better = Discount(
             pricing_plan=self.product_plan,
             name="Better Active",
             discount_type="fixed",
             value=35.00,
             is_active=True
         )
-        # 20% off $100 = $80. $35 off $100 = $65. The final price should be $65.
-        self.assertEqual(self.product_plan.final_price, 65.00)
+        with self.assertRaises(ValidationError) as ctx:
+            d_better.full_clean()
+        self.assertIn("overlaps in time with an existing active discount", str(ctx.exception))
+
 
 
 
