@@ -52,7 +52,8 @@ crm/
 
 ### 1. Catalog Management (`catalog` app)
 *   **Product Catalog API**: Lists and retrieves products, including descriptions, logos, and features.
-*   **Pricing Plans**: Modular plans supporting custom pricing, billing cycles (monthly/yearly), and statuses.
+*   **Unified Pricing Engine**: Standardized plan packages supporting pricing, billing cycles (monthly, yearly, one-time), and currency parameters for both Products (SaaS subscription plans) and Services (consulting packages).
+*   **Discount Management System**: Centralized system for configuring percentage or fixed price cuts on pricing plans. Features manual overrides (active flag), date-scheduled activation windows, validation constraints, automatic best-deal calculation logic, and detailed serialization in APIs.
 *   **Plan Modules & Limits**: Granular control over enabled modules and quantitative usage limits (e.g. max user seats, storage).
 *   **Demo Interface (`/demo/`)**: Interactive list and details viewer presenting modules and plan-specific limits.
 *   **Product Image Support**: Complete support for uploading and managing product images:

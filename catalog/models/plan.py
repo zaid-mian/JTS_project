@@ -12,7 +12,17 @@ class PricingPlan(models.Model):
         'Product',
         on_delete=models.CASCADE,
         related_name='plans',
+        blank=True,
+        null=True,
         help_text="The product this plan belongs to"
+    )
+    service = models.ForeignKey(
+        'Service',
+        on_delete=models.CASCADE,
+        related_name='plans',
+        blank=True,
+        null=True,
+        help_text="The service this plan belongs to"
     )
     name = models.CharField(max_length=255, help_text="Name of the pricing plan (e.g. Starter, Professional)")
     price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Cost of the plan")
@@ -35,11 +45,69 @@ class PricingPlan(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('product', 'name')
         ordering = ['display_order', 'id']
 
+    def clean(self):
+        if self.price is not None:
+            from decimal import Decimal
+            self.price = Decimal(str(self.price)).quantize(Decimal('0.01'))
+        super().clean()
+        if not self.product and not self.service:
+            raise ValidationError("A pricing plan must be linked to either a Product or a Service.")
+        if self.product and self.service:
+            raise ValidationError("A pricing plan cannot be linked to both a Product and a Service.")
+
+        if self.product:
+            duplicate = PricingPlan.objects.filter(product=self.product, name=self.name).exclude(pk=self.pk)
+            if duplicate.exists():
+                raise ValidationError(f"A pricing plan with name '{self.name}' already exists for this product.")
+        if self.service:
+            duplicate = PricingPlan.objects.filter(service=self.service, name=self.name).exclude(pk=self.pk)
+            if duplicate.exists():
+                raise ValidationError(f"A pricing plan with name '{self.name}' already exists for this service.")
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
+    def get_active_discount(self):
+        """
+        Retrieves the active discount for this pricing plan.
+        If multiple active discounts exist, returns the one that gives the lowest final price.
+        """
+        active_discounts = [d for d in self.discounts.all() if d.is_currently_active()]
+        if not active_discounts:
+            return None
+
+        best_discount = None
+        lowest_price = self.price
+
+        for discount in active_discounts:
+            price_after = self.calculate_price_after_discount(discount)
+            if price_after < lowest_price:
+                lowest_price = price_after
+                best_discount = discount
+
+        return best_discount
+
+    def calculate_price_after_discount(self, discount):
+        if discount.discount_type == 'percentage':
+            deduction = self.price * (discount.value / 100)
+            return max(0, self.price - deduction)
+        elif discount.discount_type == 'fixed':
+            return max(0, self.price - discount.value)
+        return self.price
+
+    @property
+    def final_price(self):
+        active_discount = self.get_active_discount()
+        if active_discount:
+            return self.calculate_price_after_discount(active_discount)
+        return self.price
+
     def __str__(self):
-        return f"{self.product.name} - {self.name} ({self.get_billing_cycle_display()})"
+        target_name = self.product.name if self.product else self.service.name
+        return f"{target_name} - {self.name} ({self.get_billing_cycle_display()})"
 
 
 class PlanModule(models.Model):
@@ -62,14 +130,17 @@ class PlanModule(models.Model):
     def clean(self):
         super().clean()
         if hasattr(self, 'plan') and hasattr(self, 'module'):
+            if not self.plan.product:
+                raise ValidationError("Plan modules can only be configured for plans belonging to a Product.")
             if self.plan.product_id != self.module.product_id:
                 raise ValidationError("A pricing plan can only link to modules belonging to the same product.")
 
     def save(self, *args, **kwargs):
-        self.full_clean()
+        self.clean()
         super().save(*args, **kwargs)
 
     def __str__(self):
         status = "Enabled" if self.is_enabled else "Disabled"
         limit = f" (Limit: {self.limit_value})" if self.limit_value else ""
         return f"{self.plan.name} - {self.module.name}: {status}{limit}"
+

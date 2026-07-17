@@ -1,7 +1,9 @@
+from datetime import timedelta
+from django.utils import timezone
 from django.test import TestCase
 from django.urls import reverse
 from django.core.exceptions import ValidationError
-from catalog.models import Product, Module, PricingPlan, PlanModule, Service, ServiceFeature
+from catalog.models import Product, Module, PricingPlan, PlanModule, Service, ServiceFeature, Discount
 
 class CatalogAdminWorkflowTest(TestCase):
     def setUp(self):
@@ -444,6 +446,132 @@ class ServicesAPIAndModelTest(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Professional Services Catalog")
+
+
+class DiscountSystemAndUnifiedPricingTest(TestCase):
+    def setUp(self):
+        self.product = Product.objects.create(name="Sales CRM", slug="sales-crm")
+        self.service = Service.objects.create(name="Custom Dev", slug="custom-dev")
+
+        # Create pricing plans for product and service
+        self.product_plan = PricingPlan.objects.create(
+            product=self.product,
+            name="Pro Plan",
+            price=100.00,
+            currency="USD",
+            billing_cycle="monthly"
+        )
+        self.service_plan = PricingPlan.objects.create(
+            service=self.service,
+            name="Basic Pack",
+            price=500.00,
+            currency="USD",
+            billing_cycle="one_time"
+        )
+
+    def test_pricing_plan_exclusivity_validation(self):
+        """PricingPlan must target either product or service, not both or neither."""
+        # 1. Neither
+        plan = PricingPlan(name="Bad Plan", price=50.00)
+        with self.assertRaises(ValidationError) as ctx:
+            plan.full_clean()
+        self.assertIn("A pricing plan must be linked to either a Product or a Service.", str(ctx.exception))
+
+        # 2. Both
+        plan2 = PricingPlan(product=self.product, service=self.service, name="Bad Plan", price=50.00)
+        with self.assertRaises(ValidationError) as ctx:
+            plan2.full_clean()
+        self.assertIn("A pricing plan cannot be linked to both a Product and a Service.", str(ctx.exception))
+
+    def test_plan_module_product_constraint(self):
+        """PlanModule can only be configured for plans belonging to a Product."""
+        module = Module.objects.create(product=self.product, name="Lead Gen", code="leads")
+        
+        # Valid: plan has product
+        pm = PlanModule(plan=self.product_plan, module=module)
+        pm.full_clean()  # should not raise
+
+        # Invalid: plan has service (no product)
+        pm2 = PlanModule(plan=self.service_plan, module=module)
+        with self.assertRaises(ValidationError) as ctx:
+            pm2.full_clean()
+        self.assertIn("Plan modules can only be configured for plans belonging to a Product.", str(ctx.exception))
+
+    def test_discount_validation_rules(self):
+        """Test percentage, fixed bounds, and date chronology validations."""
+        # 1. Percentage bounds
+        d1 = Discount(pricing_plan=self.product_plan, name="Sale", discount_type="percentage", value=120.00)
+        with self.assertRaises(ValidationError) as ctx:
+            d1.full_clean()
+        self.assertIn("Percentage discount value must be between 0 and 100.", str(ctx.exception))
+
+        # 2. Fixed bounds (exceeding original price)
+        d2 = Discount(pricing_plan=self.product_plan, name="Sale", discount_type="fixed", value=150.00)
+        with self.assertRaises(ValidationError) as ctx:
+            d2.full_clean()
+        self.assertIn("Fixed discount amount cannot exceed the pricing plan price", str(ctx.exception))
+
+        # 3. Invalid dates
+        now = timezone.now()
+        d3 = Discount(
+            pricing_plan=self.product_plan,
+            name="Sale",
+            discount_type="percentage",
+            value=10.00,
+            start_date=now + timedelta(days=1),
+            end_date=now
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            d3.full_clean()
+        self.assertIn("Start date must be chronologically before end date.", str(ctx.exception))
+
+    def test_discount_calculations_and_scheduling(self):
+        """Test manual overrides and date scheduling calculations."""
+        now = timezone.now()
+        
+        # 1. Inactive discount (manual override)
+        d_inactive = Discount.objects.create(
+            pricing_plan=self.product_plan,
+            name="Inactive",
+            discount_type="percentage",
+            value=20.00,
+            is_active=False
+        )
+        self.assertEqual(self.product_plan.final_price, 100.00)
+        
+        # 2. Scheduled active discount (percentage)
+        d_active = Discount.objects.create(
+            pricing_plan=self.product_plan,
+            name="Active",
+            discount_type="percentage",
+            value=20.00,
+            start_date=now - timedelta(days=1),
+            end_date=now + timedelta(days=1)
+        )
+        self.assertEqual(self.product_plan.final_price, 80.00)
+        
+        # 3. Scheduled future discount (not active yet)
+        d_future = Discount.objects.create(
+            pricing_plan=self.service_plan,
+            name="Future",
+            discount_type="fixed",
+            value=100.00,
+            start_date=now + timedelta(days=1),
+            end_date=now + timedelta(days=2)
+        )
+        self.assertEqual(self.service_plan.final_price, 500.00)
+
+        # 4. Multiple active discounts (best discount applied)
+        d_better = Discount.objects.create(
+            pricing_plan=self.product_plan,
+            name="Better Active",
+            discount_type="fixed",
+            value=35.00,
+            is_active=True
+        )
+        # 20% off $100 = $80. $35 off $100 = $65. The final price should be $65.
+        self.assertEqual(self.product_plan.final_price, 65.00)
+
 
 
 

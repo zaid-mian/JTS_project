@@ -26,10 +26,10 @@ class CatalogServicesAPIListView(View):
 
 class CatalogServicesAPIDetailView(View):
     """
-    API View to fetch details of a specific service, including its features.
+    API View to fetch details of a specific service, including its features and pricing plans.
     """
     def get(self, request, slug, *args, **kwargs):
-        queryset = Service.objects.filter(is_active=True).prefetch_related('features')
+        queryset = Service.objects.filter(is_active=True).prefetch_related('features', 'plans__discounts')
         
         try:
             service = get_object_or_404(queryset, slug=slug)
@@ -44,6 +44,23 @@ class CatalogServicesAPIDetailView(View):
             for f in service.features.all()
         ]
 
+        plans_data = []
+        for plan in service.plans.filter(is_active=True):
+            active_discount = plan.get_active_discount()
+            plans_data.append({
+                "id": plan.id,
+                "name": plan.name,
+                "price": str(plan.price),  # backward compatibility
+                "original_price": str(plan.price),
+                "discount_type": active_discount.discount_type if active_discount else None,
+                "discount_value": str(active_discount.value) if active_discount else None,
+                "discount_status": "active" if active_discount else "inactive",
+                "final_price": str(plan.final_price),
+                "currency": plan.currency,
+                "billing_cycle": plan.billing_cycle,
+                "is_active": plan.is_active
+            })
+
         image_url = request.build_absolute_uri(service.image.url) if service.image else None
         response_data = {
             "id": service.id,
@@ -53,7 +70,8 @@ class CatalogServicesAPIDetailView(View):
             "full_description": service.full_description,
             "image": image_url,
             "is_active": service.is_active,
-            "features": features_data
+            "features": features_data,
+            "pricing_plans": plans_data
         }
         return JsonResponse(response_data)
 

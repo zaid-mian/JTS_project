@@ -72,10 +72,16 @@ class CatalogProductAPIDetailView(View):
                         "limit_value": None
                     })
 
+            active_discount = plan.get_active_discount()
             plans_data.append({
                 "id": plan.id,
                 "name": plan.name,
-                "price": str(plan.price),
+                "price": str(plan.price),  # backward compatibility
+                "original_price": str(plan.price),
+                "discount_type": active_discount.discount_type if active_discount else None,
+                "discount_value": str(active_discount.value) if active_discount else None,
+                "discount_status": "active" if active_discount else "inactive",
+                "final_price": str(plan.final_price),
                 "currency": plan.currency,
                 "billing_cycle": plan.billing_cycle,
                 "is_active": plan.is_active,

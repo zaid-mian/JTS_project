@@ -251,6 +251,66 @@
             flex-shrink: 0;
         }
 
+        /* Pricing Card Styling */
+        .pricing-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+        }
+        .pricing-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.1);
+        }
+        .pricing-card h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+        .pricing-card .price-tag {
+            margin: 15px 0;
+        }
+        .pricing-card .original-price {
+            text-decoration: line-through;
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-right: 8px;
+        }
+        .pricing-card .final-price {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+        .pricing-card .currency {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-left: 4px;
+        }
+        .pricing-card .billing-cycle {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-transform: capitalize;
+            display: block;
+            margin-top: 5px;
+        }
+        .pricing-card .discount-badge {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 8px;
+            padding: 4px 8px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
         /* Loading Spinner */
         .loading-container {
             display: none;
@@ -386,6 +446,11 @@
             <div class="section-title">Included Features</div>
             <div class="features-grid" id="features-list">
                 <!-- Features will be injected dynamically -->
+            </div>
+
+            <div class="section-title">Pricing Packages</div>
+            <div class="features-grid" id="pricing-list" style="margin-top: 20px;">
+                <!-- Pricing packages will be injected dynamically -->
             </div>
         </div>
     </div>
@@ -552,6 +617,53 @@
                                 <h3>${escapeHtml(feat.name)}</h3>
                             `;
                             featuresContainer.appendChild(featCard);
+                        });
+                    }
+
+                    // Populate Pricing Plans
+                    const pricingContainer = document.getElementById('pricing-list');
+                    pricingContainer.innerHTML = '';
+                    if (!service.pricing_plans || service.pricing_plans.length === 0) {
+                        pricingContainer.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">No pricing packages configured for this service.</p>';
+                    } else {
+                        service.pricing_plans.forEach(plan => {
+                            const planCard = document.createElement('div');
+                            planCard.className = 'pricing-card';
+                            
+                            let priceHtml = '';
+                            if (plan.discount_status === 'active') {
+                                let discountDesc = '';
+                                if (plan.discount_type === 'percentage') {
+                                    discountDesc = `${parseFloat(plan.discount_value)}% OFF`;
+                                } else {
+                                    discountDesc = `${plan.currency} ${parseFloat(plan.discount_value)} OFF`;
+                                }
+                                priceHtml = `
+                                    <div class="price-tag">
+                                        <span class="original-price">${plan.currency} ${parseFloat(plan.original_price)}</span>
+                                        <span class="final-price">${plan.currency} ${parseFloat(plan.final_price)}</span>
+                                        <span class="billing-cycle">per ${plan.billing_cycle === 'one_time' ? 'project' : plan.billing_cycle}</span>
+                                    </div>
+                                    <div>
+                                        <span class="discount-badge">${discountDesc}</span>
+                                    </div>
+                                `;
+                            } else {
+                                priceHtml = `
+                                    <div class="price-tag">
+                                        <span class="final-price">${plan.currency} ${parseFloat(plan.original_price)}</span>
+                                        <span class="billing-cycle">per ${plan.billing_cycle === 'one_time' ? 'project' : plan.billing_cycle}</span>
+                                    </div>
+                                `;
+                            }
+
+                            planCard.innerHTML = `
+                                <div>
+                                    <h3>${escapeHtml(plan.name)}</h3>
+                                </div>
+                                ${priceHtml}
+                            `;
+                            pricingContainer.appendChild(planCard);
                         });
                     }
 
