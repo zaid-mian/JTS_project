@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from django.core.exceptions import ValidationError
-from catalog.models import Product, Module, PricingPlan, PlanModule
+from catalog.models import Product, Module, PricingPlan, PlanModule, Service, ServiceFeature
 
 class CatalogAdminWorkflowTest(TestCase):
     def setUp(self):
@@ -338,6 +338,113 @@ class ProductImageSupportTest(TestCase):
         
         # Verify new image is also deleted
         self.assertFalse(os.path.exists(new_file_path))
+
+
+@override_settings(MEDIA_ROOT=tempfile.gettempdir())
+class ServicesAPIAndModelTest(TestCase):
+    def setUp(self):
+        # Create a small valid GIF/PNG image
+        self.small_gif = (
+            b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x00\x00\x00\x21\xf9\x04'
+            b'\x01\x0a\x00\x01\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02'
+            b'\x02\x4c\x01\x00\x3b'
+        )
+        self.image_file = SimpleUploadedFile("test_service.png", self.small_gif, content_type="image/png")
+        
+        # Create an active service
+        self.service = Service.objects.create(
+            name="CRM Consultation",
+            slug="crm-consultation",
+            short_description="Summary CRM consultation",
+            full_description="Detailed CRM consultation details...",
+            image=self.image_file,
+            display_order=1
+        )
+        # Add features
+        self.feat1 = ServiceFeature.objects.create(
+            service=self.service,
+            name="Online Meeting",
+            display_order=1
+        )
+        self.feat2 = ServiceFeature.objects.create(
+            service=self.service,
+            name="Strategy Session",
+            display_order=2
+        )
+
+    def test_services_list_api(self):
+        """Test the list API endpoint returned values and status code."""
+        url = reverse('catalog:api_services_list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        
+        data = response.json()
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]['name'], "CRM Consultation")
+        self.assertEqual(data[0]['slug'], "crm-consultation")
+        self.assertEqual(data[0]['status'], "active")
+        self.assertTrue("test_service" in data[0]['image'])
+
+    def test_services_detail_api(self):
+        """Test the details API endpoint returned values and features list."""
+        url = reverse('catalog:api_services_detail', kwargs={"slug": "crm-consultation"})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        
+        data = response.json()
+        self.assertEqual(data['name'], "CRM Consultation")
+        self.assertEqual(data['slug'], "crm-consultation")
+        self.assertTrue(data['is_active'])
+        self.assertEqual(len(data['features']), 2)
+        self.assertEqual(data['features'][0]['name'], "Online Meeting")
+        self.assertEqual(data['features'][1]['name'], "Strategy Session")
+
+    def test_services_detail_api_not_found(self):
+        """Test details API returns 404 for missing slugs."""
+        url = reverse('catalog:api_services_detail', kwargs={"slug": "missing-slug"})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json()['error'], "Service not found")
+
+    def test_service_image_size_validation(self):
+        """Test that validation triggers error for file size exceeding 5MB."""
+        large_content = b'0' * (5 * 1024 * 1024 + 1)
+        large_file = SimpleUploadedFile("large_service.png", large_content, content_type="image/png")
+        service = Service(name="Large service", slug="large-service", image=large_file)
+        with self.assertRaises(ValidationError) as ctx:
+            service.full_clean()
+        self.assertIn("Maximum upload size is 5.0 MB", str(ctx.exception))
+
+    def test_service_image_cleanup_on_change_and_delete(self):
+        """Test signal cleanups for Service images."""
+        service = Service.objects.create(
+            name="Cleanup Service",
+            slug="cleanup-service",
+            image=self.image_file
+        )
+        file_path = service.image.path
+        self.assertTrue(os.path.exists(file_path))
+        
+        # Replace
+        new_image = SimpleUploadedFile("new_service.png", self.small_gif, content_type="image/png")
+        service.image = new_image
+        service.save()
+        
+        self.assertFalse(os.path.exists(file_path))
+        new_file_path = service.image.path
+        self.assertTrue(os.path.exists(new_file_path))
+        
+        # Delete
+        service.delete()
+        self.assertFalse(os.path.exists(new_file_path))
+
+    def test_services_demo_page_load(self):
+        """Test that services demo page loads correctly."""
+        url = reverse('catalog:services_demo')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Professional Services Catalog")
+
 
 
 

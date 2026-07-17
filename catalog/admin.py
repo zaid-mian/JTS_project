@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Product, Module, PricingPlan, PlanModule
+from .models import Product, Module, PricingPlan, PlanModule, Service, ServiceFeature
 
 from django.utils.html import format_html
 
@@ -45,3 +45,25 @@ class PricingPlanAdmin(admin.ModelAdmin):
     list_display = ('product', 'name', 'price', 'currency', 'billing_cycle', 'is_active', 'display_order')
     list_filter = ('product', 'billing_cycle', 'is_active')
     inlines = [PlanModuleInline]
+
+
+class ServiceFeatureInline(admin.TabularInline):
+    model = ServiceFeature
+    extra = 1
+
+@admin.register(Service)
+class ServiceAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug', 'is_active', 'display_order', 'created_at')
+    prepopulated_fields = {'slug': ('name',)}
+    search_fields = ('name', 'short_description', 'full_description')
+    list_filter = ('is_active',)
+    fields = ('name', 'slug', 'short_description', 'full_description', 'image', 'image_preview', 'is_active', 'display_order')
+    readonly_fields = ('image_preview',)
+    inlines = [ServiceFeatureInline]
+
+    def image_preview(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" style="max-height: 200px; max-width: 200px; border-radius: 8px;" />', obj.image.url)
+        return "No image uploaded yet."
+    image_preview.short_description = 'Image Preview'
+

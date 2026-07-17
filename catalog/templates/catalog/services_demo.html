@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Services Demo Dashboard | OrbitCRM</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #020617 0%, #0f172a 100%);
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.07);
+            --primary: #8b5cf6; /* Services Violet theme */
+            --primary-hover: #7c3aed;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #10b981;
+            --danger: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            color: var(--text-main);
+            padding: 40px 20px;
+            overflow-y: auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header styling */
+        header {
+            margin-bottom: 50px;
+            text-align: center;
+            animation: fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 12px;
+            background: linear-gradient(to right, #ffffff, #ddd6fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Glassmorphic card styling */
+        .card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Landing grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 30px;
+            opacity: 0;
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+        }
+
+        .service-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 15px 40px rgba(139, 92, 246, 0.15);
+        }
+
+        .service-image-container {
+            width: 100%;
+            height: 180px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            position: relative;
+        }
+
+        .service-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .service-card:hover .service-image {
+            transform: scale(1.05);
+        }
+
+        .service-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .service-placeholder svg {
+            width: 45px;
+            height: 45px;
+            margin-bottom: 8px;
+            stroke: var(--primary);
+            opacity: 0.8;
+        }
+
+        .service-header h2 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+
+        .service-description {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            flex-grow: 1;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.35);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            margin-bottom: 30px;
+            box-shadow: none;
+        }
+
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: none;
+        }
+
+        /* Detail section styling */
+        .detail-view {
+            display: none;
+            opacity: 0;
+            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .detail-header {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--glass-border);
+            color: #ddd6fe;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Features list */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.015);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .feature-card h3 {
+            font-size: 16px;
+            font-weight: 500;
+            color: #ffffff;
+        }
+
+        .icon-star {
+            color: var(--primary);
+            font-size: 20px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        /* Loading Spinner */
+        .loading-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 0;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+
+        /* Error state */
+        .error-container {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .error-container h3 {
+            font-size: 20px;
+            color: var(--danger);
+            margin-bottom: 12px;
+        }
+
+        .error-container p {
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 10px;
+            }
+
+            header h1 {
+                font-size: 28px;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <a href="/demo/" class="btn btn-back" style="margin-bottom: 15px;">&larr; Back to Products</a>
+            <h1>Professional Services Catalog</h1>
+            <p>Interactive dashboard consuming Services APIs to demonstrate dynamic consulting and development features.</p>
+        </header>
+
+        <!-- Loading spinner -->
+        <div class="loading-container" id="loading">
+            <div class="spinner"></div>
+            <p id="loading-text">Fetching data from Services API...</p>
+        </div>
+
+        <!-- Error Card -->
+        <div class="card error-container" id="error-card">
+            <h3>API Connection Failed</h3>
+            <p id="error-message">Unable to fetch services. Please ensure the server is running.</p>
+            <button class="btn" onclick="retryLastAction()">Retry Request</button>
+        </div>
+
+        <!-- Landing Section (Services List) -->
+        <div class="grid" id="service-list-view">
+            <!-- Service cards will be injected dynamically -->
+        </div>
+
+        <!-- Detail Section (Service Detail) -->
+        <div class="detail-view" id="service-detail-view">
+            <button class="btn btn-back" onclick="showListView()">&larr; Back to Services</button>
+
+            <div class="detail-header" style="display: flex; gap: 30px; align-items: center; flex-wrap: wrap; margin-bottom: 40px;">
+                <div id="detail-service-image-container" style="max-width: 320px; width: 100%; flex-shrink: 0;"></div>
+                <div style="flex: 1; min-width: 280px;">
+                    <h2 id="detail-service-name" style="margin-bottom: 12px; font-size: 32px; font-weight: 700; color: #ffffff;">Service Name</h2>
+                    <p id="detail-service-description" style="color: var(--text-muted); font-size: 15px; line-height: 1.6;">Service Description goes here...</p>
+                </div>
+            </div>
+
+            <div class="section-title">Included Features</div>
+            <div class="features-grid" id="features-list">
+                <!-- Features will be injected dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_LIST_URL = '/api/services/';
+        const API_DETAIL_PREFIX = '/api/services/';
+
+        let lastAction = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchServices();
+        });
+
+        function showLoading(text = 'Fetching data...') {
+            document.getElementById('loading-text').innerText = text;
+            document.getElementById('loading').style.display = 'flex';
+            document.getElementById('service-list-view').style.display = 'none';
+            document.getElementById('service-detail-view').style.display = 'none';
+            document.getElementById('error-card').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function showError(message) {
+            hideLoading();
+            document.getElementById('error-message').innerText = message;
+            document.getElementById('error-card').style.display = 'block';
+            document.getElementById('service-list-view').style.display = 'none';
+            document.getElementById('service-detail-view').style.display = 'none';
+        }
+
+        function retryLastAction() {
+            if (lastAction) {
+                lastAction();
+            } else {
+                fetchServices();
+            }
+        }
+
+        // Fetch services list
+        function fetchServices() {
+            lastAction = fetchServices;
+            showLoading('Loading professional services catalog...');
+
+            fetch(API_LIST_URL)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(services => {
+                    hideLoading();
+                    const container = document.getElementById('service-list-view');
+                    container.innerHTML = '';
+
+                    if (services.length === 0) {
+                        container.innerHTML = '<p style="text-align: center; color: var(--text-muted); grid-column: 1/-1;">No active services found in the database.</p>';
+                    } else {
+                        services.forEach(service => {
+                            const card = document.createElement('div');
+                            card.className = 'card service-card';
+                            
+                            let imageHtml = '';
+                            if (service.image) {
+                                imageHtml = `
+                                    <div class="service-image-container">
+                                        <img src="${escapeHtml(service.image)}" alt="${escapeHtml(service.name)}" class="service-image" />
+                                    </div>
+                                `;
+                            } else {
+                                imageHtml = `
+                                    <div class="service-image-container">
+                                        <div class="service-placeholder">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A1.5 1.5 0 0019.3 21l2-2a1.5 1.5 0 000-2.12l-5.83-5.83M11.42 15.17l2.83-2.83m-2.83 2.83l-5.66-5.66m1.41-1.41l5.66 5.66m0 0l2.83-2.83m-2.83 2.83L6.75 21a1.5 1.5 0 01-2.05 0l-2-2a1.5 1.5 0 010-2.12l4.83-4.83M21 3h-6.75a1.5 1.5 0 00-1.5 1.5v6.75a1.5 1.5 0 001.5 1.5H21a1.5 1.5 0 001.5-1.5V4.5A1.5 1.5 0 0021 3z" />
+                                            </svg>
+                                            <span>No image available</span>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+
+                            card.innerHTML = `
+                                ${imageHtml}
+                                <div class="service-header">
+                                    <h2>${escapeHtml(service.name)}</h2>
+                                </div>
+                                <p class="service-description">${escapeHtml(service.short_description || 'No description available.')}</p>
+                                <button class="btn" onclick="fetchServiceDetail('${service.slug}')">View Details &rarr;</button>
+                            `;
+                            container.appendChild(card);
+                        });
+                    }
+
+                    container.style.display = 'grid';
+                    document.getElementById('service-list-view').style.opacity = '1';
+                })
+                .catch(error => {
+                    console.error('Error fetching services:', error);
+                    showError(`Failed to load services: ${error.message}`);
+                });
+        }
+
+        // Fetch single service details
+        function fetchServiceDetail(slug) {
+            lastAction = () => fetchServiceDetail(slug);
+            showLoading(`Loading service specifications for '${slug}'...`);
+
+            fetch(`${API_DETAIL_PREFIX}${slug}/`)
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            throw new Error('Service not found (404).');
+                        }
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(service => {
+                    hideLoading();
+
+                    // Populate headers
+                    document.getElementById('detail-service-name').innerText = service.name;
+                    document.getElementById('detail-service-description').innerText = service.full_description || 'No description available.';
+
+                    // Populate Detail Image
+                    const detailImageContainer = document.getElementById('detail-service-image-container');
+                    if (service.image) {
+                        detailImageContainer.innerHTML = `
+                            <div class="service-image-container" style="margin-bottom: 0; height: 220px;">
+                                <img src="${escapeHtml(service.image)}" alt="${escapeHtml(service.name)}" class="service-image" />
+                            </div>
+                        `;
+                        detailImageContainer.style.display = 'block';
+                    } else {
+                        detailImageContainer.innerHTML = `
+                            <div class="service-image-container" style="margin-bottom: 0; height: 220px;">
+                                <div class="service-placeholder">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A1.5 1.5 0 0019.3 21l2-2a1.5 1.5 0 000-2.12l-5.83-5.83M11.42 15.17l2.83-2.83m-2.83 2.83l-5.66-5.66m1.41-1.41l5.66 5.66m0 0l2.83-2.83m-2.83 2.83L6.75 21a1.5 1.5 0 01-2.05 0l-2-2a1.5 1.5 0 010-2.12l4.83-4.83M21 3h-6.75a1.5 1.5 0 00-1.5 1.5v6.75a1.5 1.5 0 001.5 1.5H21a1.5 1.5 0 001.5-1.5V4.5A1.5 1.5 0 0021 3z" />
+                                    </svg>
+                                    <span>No image available</span>
+                                </div>
+                            </div>
+                        `;
+                        detailImageContainer.style.display = 'block';
+                    }
+
+                    // Populate Features
+                    const featuresContainer = document.getElementById('features-list');
+                    featuresContainer.innerHTML = '';
+                    if (service.features.length === 0) {
+                        featuresContainer.innerHTML = '<p style="color: var(--text-muted);">No features defined for this service.</p>';
+                    } else {
+                        service.features.forEach(feat => {
+                            const featCard = document.createElement('div');
+                            featCard.className = 'feature-card';
+                            featCard.innerHTML = `
+                                <span class="icon-star">&#9733;</span>
+                                <h3>${escapeHtml(feat.name)}</h3>
+                            `;
+                            featuresContainer.appendChild(featCard);
+                        });
+                    }
+
+                    // Display details screen
+                    document.getElementById('service-detail-view').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error fetching service details:', error);
+                    showError(`Failed to load service details: ${error.message}`);
+                });
+        }
+
+        function showListView() {
+            document.getElementById('service-detail-view').style.display = 'none';
+            document.getElementById('service-list-view').style.display = 'grid';
+            lastAction = fetchServices;
+        }
+
+        // Escape helper to prevent HTML injection
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
+</body>
+
+</html>

@@ -61,6 +61,12 @@ crm/
     *   **Automatic Cleanup**: When a product image is replaced or the product itself is deleted, the corresponding file is automatically removed from the local filesystem to prevent orphaned media.
     *   **Storage Location**: Image files are stored under `media/products/` on the server filesystem.
     *   **Absolute API URLs**: The product list (`/api/products/`) and detail (`/api/products/<slug>/`) API endpoints return the full, absolute URL path (e.g., `http://127.0.0.1:8000/media/products/filename.png`) in the `image` field (or `null` if no image has been uploaded), allowing direct use by frontend clients.
+*   **Professional Services Module**: Dynamic professional service listings (e.g., CRM/AI/ERP Consultations, Custom Software Development, UI/UX Design).
+    *   **Services APIs**: Exposes `/api/services/` (active listings summary with slug, status, image URL) and `/api/services/<slug>/` (in-depth descriptions and dynamic features checklist) for frontend client usage. No service data is hardcoded.
+    *   **Services Django Admin**: Administrators can create/edit/delete services, manage features inline, upload service banners (format validated, max 5 MB, Pillow verified), and preview images on-the-fly.
+    *   **Automatic Image Cleanup**: Adapts filesystem cleanup receivers to prune services media assets immediately on deletions or replacements.
+    *   **Demo Dashboard (`/demo/services/`)**: Interactive dashboard listing services and detailing dynamic features lists fetched via APIs.
+
 
 
 ### 2. Authentication System (`accounts` app)
