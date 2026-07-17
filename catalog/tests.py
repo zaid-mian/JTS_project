@@ -571,7 +571,7 @@ class DiscountSystemAndUnifiedPricingTest(TestCase):
         )
         with self.assertRaises(ValidationError) as ctx:
             d_better.full_clean()
-        self.assertIn("overlaps in time with an existing active discount", str(ctx.exception))
+        self.assertIn("overlaps with 'Active'", str(ctx.exception))
 
 
 

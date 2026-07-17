@@ -64,9 +64,6 @@ class Discount(models.Model):
             ).exclude(pk=self.pk)
 
             for d in overlaps:
-                if not self.start_date and not self.end_date and not d.start_date and not d.end_date:
-                    raise ValidationError(f"An active discount ('{d.name}') with no date limits already exists for this plan.")
-
                 from datetime import datetime
                 from django.utils.timezone import make_aware
 
@@ -80,7 +77,20 @@ class Discount(models.Model):
                 eb = d.end_date if d.end_date else max_dt
 
                 if sa < eb and sb < ea:
-                    raise ValidationError(f"This active discount overlaps in time with an existing active discount '{d.name}' for this plan.")
+                    # Format user-friendly date range
+                    if not d.start_date and not d.end_date:
+                        date_range_str = "active indefinitely"
+                    elif d.start_date and not d.end_date:
+                        date_range_str = f"starts {d.start_date.strftime('%B %d, %Y')}"
+                    elif not d.start_date and d.end_date:
+                        date_range_str = f"ends {d.end_date.strftime('%B %d, %Y')}"
+                    else:
+                        date_range_str = f"{d.start_date.strftime('%B %d, %Y')} – {d.end_date.strftime('%B %d, %Y')}"
+
+                    raise ValidationError(
+                        f"This discount overlaps with '{d.name}' ({date_range_str}). "
+                        f"Please choose different dates or disable the existing discount."
+                    )
 
         # Value bounds validation
         if self.discount_type == 'percentage':
