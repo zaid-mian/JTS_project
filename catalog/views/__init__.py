@@ -1,3 +1,4 @@
 from .product import CatalogProductAPIListView, CatalogProductAPIDetailView, CatalogDemoView
 from .service import CatalogServicesAPIListView, CatalogServicesAPIDetailView, CatalogServicesDemoView
+from .feedback import ProductFeedbackAPIView, ServiceFeedbackAPIView
 

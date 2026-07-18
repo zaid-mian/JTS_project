@@ -3,7 +3,8 @@ from django.utils import timezone
 from django.test import TestCase
 from django.urls import reverse
 from django.core.exceptions import ValidationError
-from catalog.models import Product, Module, PricingPlan, PlanModule, Service, ServiceFeature, Discount
+from catalog.models import Product, Module, PricingPlan, PlanModule, Service, ServiceFeature, Discount, Feedback
+import json
 
 class CatalogAdminWorkflowTest(TestCase):
     def setUp(self):
@@ -572,6 +573,89 @@ class DiscountSystemAndUnifiedPricingTest(TestCase):
         with self.assertRaises(ValidationError) as ctx:
             d_better.full_clean()
         self.assertIn("overlaps with 'Active'", str(ctx.exception))
+
+
+class CustomerFeedbackTest(TestCase):
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        self.customer = User.objects.create_user(
+            username='reviewer@example.com',
+            email='reviewer@example.com',
+            password='Password123'
+        )
+        self.other_customer = User.objects.create_user(
+            username='otherreview@example.com',
+            email='otherreview@example.com',
+            password='Password123'
+        )
+        self.product = Product.objects.create(
+            name="Feedback Product",
+            slug="feedback-product",
+            is_active=True
+        )
+        self.service = Service.objects.create(
+            name="Feedback Service",
+            slug="feedback-service",
+            is_active=True
+        )
+
+    def test_feedback_rating_boundaries(self):
+        f = Feedback(user=self.customer, product=self.product, rating=5, comment="Great")
+        f.full_clean()
+
+        f_low = Feedback(user=self.customer, product=self.product, rating=0, comment="Bad")
+        with self.assertRaises(ValidationError):
+            f_low.full_clean()
+
+        f_high = Feedback(user=self.customer, product=self.product, rating=6, comment="Superb")
+        with self.assertRaises(ValidationError):
+            f_high.full_clean()
+
+    def test_feedback_uniqueness_constraints(self):
+        Feedback.objects.create(user=self.customer, product=self.product, rating=4, comment="First")
+        
+        f_dup = Feedback(user=self.customer, product=self.product, rating=5, comment="Second")
+        from django.db import IntegrityError
+        with self.assertRaises(IntegrityError):
+            f_dup.save()
+
+    def test_feedback_api_upsert_flow(self):
+        self.client.login(username='reviewer@example.com', password='Password123')
+        url = reverse('catalog:api_product_feedback', kwargs={'slug': self.product.slug})
+        
+        response = self.client.post(
+            url,
+            json.dumps({"rating": 4, "comment": "Good start"}),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(Feedback.objects.count(), 1)
+        self.assertEqual(Feedback.objects.first().rating, 4)
+
+        response = self.client.post(
+            url,
+            json.dumps({"rating": 5, "comment": "Excellent now"}),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Feedback.objects.count(), 1)
+        self.assertEqual(Feedback.objects.first().rating, 5)
+
+    def test_product_detail_api_feedback_keys(self):
+        Feedback.objects.create(user=self.customer, product=self.product, rating=5, comment="Amazing")
+        Feedback.objects.create(user=self.other_customer, product=self.product, rating=3, comment="Okay")
+
+        url = reverse('catalog:api_product_detail', kwargs={'slug': self.product.slug})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        
+        self.assertEqual(data['average_rating'], 4.0)
+        self.assertEqual(data['review_count'], 2)
+        self.assertEqual(len(data['reviews']), 2)
+        self.assertNotIn("reviewer@example.com", json.dumps(data['reviews']))
+
 
 
 

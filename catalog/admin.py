@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Product, Module, PricingPlan, PlanModule, Service, ServiceFeature, Discount
+from .models import Product, Module, PricingPlan, PlanModule, Service, ServiceFeature, Discount, Feedback
 
 from django.utils.html import format_html
 
@@ -85,5 +85,12 @@ class DiscountAdmin(admin.ModelAdmin):
     list_display = ('name', 'pricing_plan', 'discount_type', 'value', 'is_active', 'start_date', 'end_date')
     list_filter = ('discount_type', 'is_active', 'pricing_plan')
     search_fields = ('name', 'pricing_plan__name')
+
+
+@admin.register(Feedback)
+class FeedbackAdmin(admin.ModelAdmin):
+    list_display = ('user', 'product', 'service', 'rating', 'created_at')
+    list_filter = ('rating', 'created_at')
+    search_fields = ('user__email', 'comment')
 
 

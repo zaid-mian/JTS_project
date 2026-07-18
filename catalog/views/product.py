@@ -2,7 +2,9 @@ from django.http import JsonResponse, Http404
 from django.shortcuts import get_object_or_404
 from django.views import View
 from django.views.generic import TemplateView
-from catalog.models import Product
+from catalog.models import Product, Feedback
+from catalog.utils import can_user_review
+from django.db.models import Avg
 
 class CatalogProductAPIListView(View):
     """
@@ -88,6 +90,29 @@ class CatalogProductAPIDetailView(View):
                 "modules": plan_modules_list
             })
 
+        # Calculate feedback stats
+        feedbacks = product.feedbacks.all()
+        review_count = feedbacks.count()
+        avg_rating = feedbacks.aggregate(Avg('rating'))['rating__avg']
+        average_rating = float(avg_rating) if avg_rating is not None else 0.0
+
+        user = request.user
+        has_reviewed = False
+        if user and user.is_authenticated:
+            has_reviewed = feedbacks.filter(user=user).exists()
+
+        can_review = can_user_review(user, product)
+
+        reviews_list = [
+            {
+                "user_name": r.user.get_full_name() or r.user.email.split('@')[0],
+                "rating": r.rating,
+                "comment": r.comment,
+                "updated_at": r.updated_at.isoformat()
+            }
+            for r in feedbacks
+        ]
+
         image_url = request.build_absolute_uri(product.image.url) if product.image else None
         response_data = {
             "id": product.id,
@@ -97,7 +122,12 @@ class CatalogProductAPIDetailView(View):
             "image": image_url,
             "is_active": product.is_active,
             "modules": modules_data,
-            "pricing_plans": plans_data
+            "pricing_plans": plans_data,
+            "can_review": can_review,
+            "has_reviewed": has_reviewed,
+            "average_rating": average_rating,
+            "review_count": review_count,
+            "reviews": reviews_list
         }
         return JsonResponse(response_data)
 
